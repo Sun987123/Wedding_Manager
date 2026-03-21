@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1e1e2e">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Manager Pro | Enterprise</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+
+<style>
+  :root {
+    --bg: #f4f6f9; --surface: #ffffff; --card: #ffffff;
+    --text: #1f2937; --text-muted: #6b7280;
+    --accent: #3b82f6; --accent-hover: #2563eb;
+    --border: #e5e7eb; --success: #10b981; --danger: #ef4444;
+    --shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.08), 0 2px 6px -2px rgba(0, 0, 0, 0.04);
+    --radius: 12px; --spacing: 12px;
+    --max-width: 1400px; --bottom-nav-height: 56px; --top-bar-height: 54px;
+  }
+
+  [data-theme="dark"] {
+    --bg: #111827; --surface: #1f2937; --card: #1f2937;
+    --text: #f9fafb; --text-muted: #9ca3af;
+    --accent: #60a5fa; --accent-hover: #3b82f6;
+    --border: #374151; --shadow: 0 6px 15px -3px rgba(0, 0, 0, 0.4);
+  }
+
+  [data-theme="amoled"] {
+    --bg: #000000; --surface: #0a0a0a; --card: #0a0a0a;
+    --text: #f3f4f6; --text-muted: #6b7280;
+    --accent: #3b82f6; --accent-hover: #2563eb;
+    --border: #1f2937; --shadow: none;
+  }
+
+  [data-card-style="flat"] { --shadow: none; --border-style: solid; --border-width: 1px; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg); color: var(--text); overflow-x: hidden; transition: background-color 0.3s, color 0.3s; user-select: none; }
+  h1, h2, h3 { font-weight: 600; color: var(--text); }
+  p { line-height: 1.5; color: var(--text-muted); font-size: 0.9rem; }
+
+  #auth-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px; transition: opacity 0.3s; }
+  .auth-box { background: var(--surface); padding: 30px; border-radius: var(--radius); box-shadow: var(--shadow); width: 100%; max-width: 400px; text-align: center; border: 1px solid var(--border); }
+  .auth-box h1 { color: var(--accent); margin-bottom: 8px; font-size: 1.8rem; }
+  .auth-box p { margin-bottom: 24px; font-size: 0.9rem; }
+
+  .app-container { max-width: var(--max-width); margin: 0 auto; height: 100vh; display: flex; flex-direction: column; position: relative; background-color: var(--bg); z-index: 1; display: none; }
+  
+  .bg-watermark { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; z-index: 0; display: none; }
+  .bg-watermark .title { font-size: 4.5rem; font-weight: 900; letter-spacing: 5px; color: var(--accent); opacity: 0.05; }
+  .bg-watermark .subtitle { font-size: 2.5rem; font-weight: 800; color: var(--text-muted); opacity: 0.05; margin-top: -10px; }
+  #tab-home.active ~ .bg-watermark, .app-container:has(#tab-home.active) .bg-watermark { display: block; }
+
+  .top-bar { height: var(--top-bar-height); background-color: var(--surface); padding: 0 var(--spacing); position: sticky; top: 0; z-index: 40; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-bottom: 1px solid var(--border); }
+  .top-bar-content { display: flex; align-items: center; justify-content: space-between; height: 100%; width: 100%; }
+  .top-bar h1 { font-size: 1.15rem; color: var(--accent); display: flex; align-items: center; gap: 8px; font-weight: 700; }
+
+  .icon-btn { background: transparent; border: none; color: var(--text); cursor: pointer; padding: 6px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+  .icon-btn:hover { background-color: var(--border); }
+  .icon-btn svg { width: 22px; height: 22px; fill: currentColor; }
+  .search-input { flex: 1; border: none; background: transparent; outline: none; font-size: 1rem; color: var(--text); padding: 0 8px; }
+
+  .main-content { flex: 1; overflow-y: auto; padding: var(--spacing); padding-bottom: calc(var(--bottom-nav-height) + 20px); position: relative; z-index: 2; }
+  .section { display: none; animation: fadeIn 0.2s ease-out forwards; }
+  .section.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+  .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: var(--max-width); height: var(--bottom-nav-height); background-color: var(--surface); display: flex; justify-content: space-around; align-items: center; box-shadow: 0 -4px 15px rgba(0,0,0,0.04); z-index: 60; border-top: 1px solid var(--border); padding-bottom: env(safe-area-inset-bottom); }
+  .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); text-decoration: none; font-size: 0.65rem; font-weight: 600; gap: 3px; cursor: pointer; flex: 1; height: 100%; transition: color 0.2s; }
+  .nav-item svg { width: 22px; height: 22px; fill: currentColor; transition: transform 0.2s; }
+  .nav-item.active { color: var(--accent); }
+  .nav-item.active svg { transform: scale(1.1); }
+
+  .summary-bar { display: flex; justify-content: space-between; align-items: center; gap: 4px; background: linear-gradient(135deg, var(--accent), var(--accent-hover)); color: white; padding: 12px; border-radius: var(--radius); margin-bottom: var(--spacing); box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); }
+  .summary-bar .stat-box { display: flex; flex-direction: column; align-items: center; flex: 1; text-align: center; }
+  .summary-bar span { font-size: 0.6rem; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+  .summary-bar strong { font-size: 0.95rem; font-weight: 700; }
+  .summary-divider { width: 1px; height: 28px; background: rgba(255,255,255,0.3); flex-shrink: 0; }
+
+  .card { background-color: var(--card); border-radius: var(--radius); padding: 14px; margin-bottom: var(--spacing); box-shadow: var(--shadow); border: var(--border-width, 1px) var(--border-style, solid) var(--border); transition: transform 0.2s, box-shadow 0.2s; position: relative; }
+  .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px dashed var(--border); }
+  .card-header h3 { font-size: 1rem; color: var(--accent); flex: 1; line-height: 1.3; }
+  .card-actions { display: flex; gap: 4px; align-items: center; }
+  .card-action-btn { background: transparent; border: none; color: var(--text-muted); cursor: pointer; padding: 6px; border-radius: 6px; display: inline-flex; align-items: center; transition: 0.2s; }
+  .card-action-btn:hover { background: var(--border); color: var(--accent); }
+  .card-action-btn.del:hover { color: var(--danger); background: rgba(239, 68, 68, 0.1); }
+  .card-action-btn svg { width: 18px; height: 18px; fill: currentColor; }
+
+  .badge { padding: 3px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; background: var(--border); color: var(--text); }
+  .badge.success { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+  .badge.danger { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+  .data-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.85rem; align-items: center; }
+  .data-row:last-child { margin-bottom: 0; }
+
+  .note-box { font-size: 0.8rem; color: var(--text-muted); background-color: var(--bg); padding: 8px 10px; border-radius: 6px; margin-top: 8px; border-left: 3px solid var(--accent); }
+
+  input, select, textarea { width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); background-color: var(--bg); color: var(--text); margin-bottom: var(--spacing); font-size: 0.95rem; font-family: inherit; transition: border-color 0.2s; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); background-color: var(--surface); }
+
+  .btn { display: inline-flex; align-items: center; justify-content: center; padding: 10px 18px; border-radius: 8px; border: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: transform 0.1s, background 0.2s, opacity 0.2s; gap: 6px; }
+  .btn:active { transform: scale(0.96); }
+  .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-hover)); color: white; width: 100%; }
+  .btn-secondary { background-color: var(--border); color: var(--text); }
+  .btn-danger { background-color: var(--danger); color: white; }
+  .btn-sm { padding: 6px 12px; font-size: 0.75rem; width: auto; }
+
+  .fab-btn { position: fixed; bottom: calc(var(--bottom-nav-height) + 16px); right: 16px; width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent-hover)); color: white; display: none; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4); cursor: pointer; z-index: 100; border: none; transition: transform 0.2s, box-shadow 0.2s; }
+  .fab-btn:active { transform: scale(0.95); }
+  .fab-btn svg { width: 24px; height: 24px; fill: currentColor; }
+
+  .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 120; display: none; align-items: center; justify-content: center; padding: var(--spacing); opacity: 0; transition: opacity 0.2s; }
+  .modal-overlay.active { display: flex; opacity: 1; }
+  .modal-content { background-color: var(--surface); width: 100%; max-width: 400px; border-radius: var(--radius); padding: 20px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); transform: scale(0.95); transition: transform 0.2s; max-height: 90vh; overflow-y: auto; }
+  .modal-overlay.active .modal-content { transform: scale(1); }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+
+  .history-list { margin-top: 10px; border-top: 1px dashed var(--border); }
+  .history-item { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted); }
+
+  .attendance-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(36px, 1fr)); gap: 6px; margin-top: 10px; }
+  .att-box { width: 100%; aspect-ratio: 1; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold; cursor: pointer; border: 1px solid var(--border); }
+  .att-box.present { background: var(--success); color: white; border-color: var(--success); }
+  .att-box.absent { background: var(--danger); color: white; border-color: var(--danger); }
+
+  .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; cursor: pointer; inset: 0; background-color: var(--border); transition: .2s; border-radius: 24px; }
+  .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .2s; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+  input:checked + .slider { background-color: var(--success); }
+  input:checked + .slider:before { transform: translateX(20px); }
+
+  #exit-toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 0.85rem; font-weight: 500; z-index: 1000; display: none; opacity: 0; transition: opacity 0.3s; }
+
+  @media (min-width: 768px) {
+    .bottom-nav { position: sticky; bottom: auto; left: auto; transform: none; width: 220px; height: calc(100vh - var(--top-bar-height)); flex-direction: column; justify-content: flex-start; padding-top: 16px; border-top: none; border-right: 1px solid var(--border); }
+    .nav-item { flex: none; height: 50px; width: 100%; flex-direction: row; justify-content: flex-start; padding: 0 16px; gap: 12px; font-size: 0.95rem; }
+    .app-container { flex-direction: row; flex-wrap: wrap; }
+    .bg-watermark { left: calc(50% + 110px); }
+    .top-bar { width: 100%; }
+    .main-content { padding-bottom: var(--spacing); }
+    .fab-btn { bottom: 30px; right: 30px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="auth-screen">
+  <div class="auth-box">
+    <h1>Manager Pro</h1>
+    <p>Login to Sync your Database Online</p>
+    <input type="email" id="auth-email" placeholder="Email Address">
+    <input type="password" id="auth-pass" placeholder="Password">
+    <div style="display:flex; gap:10px;">
+      <button class="btn btn-secondary" style="flex:1;" onclick="handleAuth('signup')">Sign Up</button>
+      <button class="btn btn-primary" style="flex:1;" onclick="handleAuth('login')">Login</button>
+    </div>
+    <div id="auth-err" style="color:var(--danger); font-size:0.8rem; margin-top:10px;"></div>
+  </div>
+</div>
+
+<div class="app-container" id="app-container">
+  
+  <div class="bg-watermark">
+    <div class="title">BHAWNA</div>
+    <div class="subtitle">MP</div>
+  </div>
+
+  <header class="top-bar">
+    <div class="top-bar-content" id="tb-default">
+      <h1 id="app-title">
+        <svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 2L2 22h20L12 2zm0 4.5l6.5 13.5h-13L12 6.5z"/></svg> Manager Pro
+      </h1>
+      <div style="display: flex; gap: 4px;">
+        <button class="icon-btn" onclick="toggleSort()" title="Sort"><svg viewBox="0 0 24 24"><path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z"/></svg></button>
+        <button class="icon-btn" onclick="toggleSearchMode()"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg></button>
+        <button class="icon-btn" onclick="openModal('modal-settings')"><svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94L14.4 2.81c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41L9.25 5.35C8.66 5.59 8.12 5.92 7.63 6.3L5.24 5.34c-.22-.08-.47 0-.59.22L2.73 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .43-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.49-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg></button>
+      </div>
+    </div>
+    <div class="top-bar-content" id="tb-search" style="display: none;">
+      <button class="icon-btn" onclick="toggleSearchMode()"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
+      <input type="text" id="global-search" class="search-input" placeholder="Search here..." oninput="renderAll()">
+    </div>
+  </header>
+
+  <nav class="bottom-nav">
+    <a class="nav-item active" onclick="switchTab('tab-home')"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg> Home</a>
+    <a class="nav-item" onclick="switchTab('tab-booking')"><svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg> Booking</a>
+    <a class="nav-item" onclick="switchTab('tab-shopping')"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg> Shopping</a>
+    <a class="nav-item" onclick="switchTab('tab-work')"><svg viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg> Work</a>
+    <a class="nav-item" onclick="switchTab('tab-guest')"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg> Mehman</a>
+  </nav>
+
+  <main class="main-content">
+    <section id="tab-home" class="section active">
+      
+      <div style="text-align: center; margin-bottom: 20px;">
+        <img src="https://images.unsplash.com/photo-1605152276890-8742ba56b02a?q=80&w=600&auto=format&fit=crop" alt="Dashboard Cover" style="width: 100%; max-width: 250px; aspect-ratio: 1; object-fit: cover; border-radius: var(--radius); box-shadow: var(--shadow);">
+      </div>
+
+      <button class="btn btn-secondary" style="width: 100%; margin-bottom: 16px; display: flex; justify-content: space-between; padding: 14px 18px;" onclick="toggleHomeSummary()">
+        <span>View Detailed Summary</span>
+        <span id="summary-toggle-icon" style="transition: transform 0.2s;">▼</span>
+      </button>
+
+      <div id="home-summary-container" style="display: none;"></div>
+    </section>
+    <section id="tab-booking" class="section"><div id="booking-summary" class="summary-bar"></div><div id="booking-list"></div></section>
+    <section id="tab-shopping" class="section"><div id="shopping-summary" class="summary-bar"></div><div id="shopping-list"></div></section>
+    <section id="tab-work" class="section"><div id="work-summary" class="summary-bar"></div><div id="work-list"></div></section>
+    <section id="tab-guest" class="section"><div id="guest-summary" class="summary-bar"></div><div id="guest-list"></div></section>
+  </main>
+
+  <button id="global-fab" class="fab-btn" onclick="handleFabClick()"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></button>
+  <div id="exit-toast">Press back again to exit</div>
+</div>
+
+<div id="modal-add-booking" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header"><h2 id="title-add-booking">Add New Booking</h2><button class="icon-btn" onclick="closeModal()"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button></div>
+    <form id="form-booking" onsubmit="saveBooking(event)">
+      <label class="form-label" style="font-size:0.8rem; font-weight:600;">Service / Person Name</label><input type="text" id="b-name" required>
+      <label class="form-label" style="font-size:0.8rem; font-weight:600;">Phone (Comma separated for multiple)</label><input type="text" id="b-phone" placeholder="e.g. 9876543210, 9988776655">
+      <label class="form-label" style="font-size:0.8rem; font-weight:600;">Total Fixed Amount (₹)</label><input type="number" id="b-total" required min="0">
+      <div id="b-adv-container">
+        <label class="form-label" style="font-size:0.8rem; font-weight:600;">Advance Given (₹)</label><input type="number" id="b-advance" required min="0" value="0">
+      </div>
+      <button type="submit" id="btn-save-booking" class="btn btn-primary" style="margin-top: 4px;">Save Booking</button>
+    </form>
+  </div>
+</div>
+
+<div id="modal-add-payment" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header"><h2>Add Payment Record</h2><button class="icon-btn" onclick="closeModal()"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button></div>
+    <form id="form-payment" onsubmit="savePayment(event)">
+      <input type="hidden" id="p-id"><input type="hidden" id="p-type">
+      <label class="form-label" style="font-size:0.8rem; font-weight:600;">Amount Paid (₹)</label><input type="number" id="p-amount" required min="1">
+      <label class="form-label" style="font-size:0.8rem; font-weight:600;">Date</label><input type="date" id="p-date" required>
+      <button type="submit" class="btn btn-primary" style="margin-top: 4px;">Save Payment</button>
+    </form>
+  </div>
+</div>
+
+<div id="modal-add-shopping" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header"><h2 id="title-add-shopping">Add Shopping Item</h2><button class="icon-btn" onclick="closeModal()"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button></div>
+    <form id="form-shopping" onsubmit="saveShopping(event)">
+      <label class="form-label" style="font-size:0.8rem; font-weight:600;">Item Name</label><input type="text" id="s-name" required>
+      <label class="form-label" style="font-size:0.8rem; font-weight:600;">Estimated Cost (₹)</label><input type="number" id="s-cost" required min="0">
+      <button type="submit" id="btn-save-shopping" class="btn btn-primary" style="margin-top: 4px;">Save Item</button>
+    </form>
+  </div>
+</div>
+
+<div id="modal-add-work" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header"><h2 id="title-add-work">Assign Work</h2><button class="icon-btn" onclick="closeModal()"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button></div>
+    <form id="form-work" onsubmit="saveWork(event)">
+      <label class="form-label" style="font-size:0.8rem; font-weight:600;">Worker Name</label><input type="text" id="w-name" required>
+      <label class="form-label" style="font-size:0.8rem; font-weight:600;">Task Assigned</label><input type="text" id="w-task" required>
+      <label class="form-label" style="font-size:0.8rem; font-weight:600;">Total Fixed Pay (₹)</label><input type="number" id="w-pay" required min="0">
+      <button type="submit" id="btn-save-work" class="btn btn-primary" style="margin-top: 4px;">Save Work</button>
+    </form>
+  </div>
+</div>
+
+<div id="modal-add-guest" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header"><h2 id="title-add-guest">Mehman Ki Detail</h2><button class="icon-btn" onclick="closeModal()"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button></div>
+    <form id="form-guest" onsubmit="saveGuest(event)">
+      <label class="form-label" style="font-size:0.8rem; font-weight:600;">Naam (Family/Person)</label><input type="text" id="g-name" required>
+      <label class="form-label" style="font-size:0.8rem; font-weight:600;">Phone (Comma separated for multiple)</label><input type="text" id="g-phone" placeholder="e.g. 9876543210, 9988776655">
+      <div style="display:flex; gap:16px;">
+        <div style="flex:1;">
+          <label class="form-label" style="font-size:0.8rem; font-weight:600;">Card Bheja?</label>
+          <select id="g-card"><option value="false">Nahi</option><option value="true">Haan</option></select>
+        </div>
+        <div style="flex:1;">
+          <label class="form-label" style="font-size:0.8rem; font-weight:600;">Aa Rahe Hai?</label>
+          <select id="g-attend"><option value="false">Nahi</option><option value="true">Haan</option></select>
+        </div>
+      </div>
+      <button type="submit" id="btn-save-guest" class="btn btn-primary" style="margin-top: 4px;">Save Mehman</button>
+    </form>
+  </div>
+</div>
+
+<div id="modal-add-note" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header"><h2>Save Note</h2><button class="icon-btn" onclick="closeModal()"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button></div>
+    <form id="form-note" onsubmit="saveNote(event)">
+      <input type="hidden" id="n-id"><input type="hidden" id="n-type">
+      <label class="form-label" style="font-size:0.8rem; font-weight:600;">Write remarks:</label>
+      <textarea id="n-text" rows="4" placeholder="Enter notes..."></textarea>
+      <button type="submit" class="btn btn-primary" style="margin-top: 4px;">Save Note</button>
+    </form>
+  </div>
+</div>
+
+<div id="modal-attendance" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header"><h2>Hajiri (<span id="att-worker-name"></span>)</h2><button class="icon-btn" onclick="closeModal()"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button></div>
+    <input type="hidden" id="att-w-id">
+    <label class="form-label" style="font-size:0.8rem; font-weight:600;">Select Date</label>
+    <input type="date" id="att-date" onchange="checkAttendanceStatus()">
+    <div style="display: flex; gap: 8px; margin-top: 12px;">
+      <button class="btn btn-primary" style="background-color: var(--success);" onclick="markAttendance('Present')">Present (P)</button>
+      <button class="btn btn-primary" style="background-color: var(--danger);" onclick="markAttendance('Absent')">Absent (A)</button>
+    </div>
+    <h3 style="margin-top:16px; font-size: 0.95rem;">Recent</h3>
+    <div class="attendance-grid" id="att-grid"></div>
+  </div>
+</div>
+
+<div id="modal-settings" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header"><h2>App Settings</h2><button class="icon-btn" onclick="closeModal()"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button></div>
+    <label class="form-label" style="font-size:0.8rem; font-weight:600;">Theme</label>
+    <select id="set-theme" onchange="updateSettings()"><option value="light">Light</option><option value="dark">Dark</option><option value="amoled">AMOLED</option></select>
+    <label class="form-label" style="font-size:0.8rem; font-weight:600;">Card Style</label>
+    <select id="set-card" onchange="updateSettings()"><option value="elevated">Elevated</option><option value="flat">Flat</option></select>
+    <hr style="border:none; border-top:1px solid var(--border); margin: 16px 0;">
+    
+    <button class="btn btn-secondary" style="width:100%; margin-bottom:8px; color:var(--danger);" onclick="logout()">Logout / Change Account</button>
+    
+    <button class="btn btn-secondary" style="width:100%; margin-bottom:8px;" onclick="exportData()">Export Data (Backup)</button>
+    <label class="btn btn-secondary" style="width:100%; margin-bottom:8px; display:inline-flex; align-items:center; justify-content:center; padding:10px 18px; border-radius:8px; cursor:pointer; gap:6px; font-size:0.85rem; font-weight:600;">
+      Import Data <input type="file" style="display:none;" accept=".json" onchange="importData(event)">
+    </label>
+    <button class="btn btn-danger" style="width:100%;" onclick="resetApp()">Reset Application</button>
+  </div>
+</div>
+
+<script>
+  const firebaseConfig = {
+      apiKey: "AIzaSyCpsdpNnxjLktRzQopOCtVpLmBOLJgZ0Lc",
+      authDomain: "wedding-5fd71.firebaseapp.com",
+      databaseURL: "https://wedding-5fd71-default-rtdb.firebaseio.com",
+      projectId: "wedding-5fd71",
+      storageBucket: "wedding-5fd71.firebasestorage.app",
+      messagingSenderId: "161858417012",
+      appId: "1:161858417012:web:1bb22692a48e6146b2fc21"
+  };
+  
+  if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+  const auth = firebase.auth();
+  const db = firebase.database();
+
+  let appData = { bookings: [], shopping: [], workers: [], guests: [], settings: { theme: 'light', cardStyle: 'elevated' } };
+  let sortMode = 'time'; let globalEditId = null; let lastBackTime = 0;
+  let currentUser = null;
+
+  auth.onAuthStateChanged(user => {
+      if (user) {
+          currentUser = user;
+          document.getElementById('auth-screen').style.display = 'none';
+          document.getElementById('app-container').style.display = 'flex';
+          initApp();
+      } else {
+          currentUser = null;
+          document.getElementById('auth-screen').style.display = 'flex';
+          document.getElementById('app-container').style.display = 'none';
+      }
+  });
+
+  async function handleAuth(type) {
+      const email = document.getElementById('auth-email').value;
+      const pass = document.getElementById('auth-pass').value;
+      const err = document.getElementById('auth-err');
+      if(!email || !pass) return err.innerText = "Please enter email/password";
+      try {
+          if(type==='login') await auth.signInWithEmailAndPassword(email, pass);
+          else await auth.createUserWithEmailAndPassword(email, pass);
+      } catch(e) { err.innerText = e.message; }
+  }
+
+  function logout() { auth.signOut(); closeModal(); }
+
+  function initApp() {
+    const saved = localStorage.getItem(`managerProData_${currentUser.uid}`);
+    if (saved) { try { appData = JSON.parse(saved); } catch(e) {} }
+    ensureDataStructure();
+    applySettings(); renderAll();
+    
+    db.ref('users/' + currentUser.uid).once('value').then(snap => {
+      const cloudData = snap.val();
+      if(cloudData) { appData = cloudData; ensureDataStructure(); saveData(false); renderAll(); }
+    }).catch(e => console.log("Working Offline"));
+
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('p-date').value = today; document.getElementById('att-date').value = today;
+    document.getElementById('global-fab').style.display = 'none';
+    
+    history.replaceState({ tab: 'tab-home' }, '', '#home');
+    history.pushState({ tab: 'tab-home' }, '', '#home');
+  }
+
+  function ensureDataStructure() {
+    appData.bookings = appData.bookings || []; appData.shopping = appData.shopping || []; 
+    appData.workers = appData.workers || []; appData.guests = appData.guests || [];
+    appData.settings = appData.settings || { theme: 'light', cardStyle: 'elevated' };
+  }
+
+  function saveData(pushToCloud = true) { 
+    localStorage.setItem(`managerProData_${currentUser.uid}`, JSON.stringify(appData)); 
+    if(pushToCloud && currentUser) { db.ref('users/' + currentUser.uid).set(appData).catch(e => console.log('Saved locally')); }
+    renderAll(); 
+  }
+
+  function switchTab(tabId, pushHistory = true) {
+    document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    
+    const tabName = tabId.split('-')[1];
+    const navBtn = document.querySelector(`.nav-item[onclick*="${tabId}"]`);
+    if(navBtn) navBtn.classList.add('active');
+    document.getElementById('app-title').innerHTML = `<svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 2L2 22h20L12 2zm0 4.5l6.5 13.5h-13L12 6.5z"/></svg> ${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`;
+    
+    const fab = document.getElementById('global-fab');
+    if(tabId === 'tab-home') fab.style.display = 'none'; else fab.style.display = 'flex';
+
+    if(pushHistory) history.pushState({ tab: tabId }, '', `#${tabName}`);
+  }
+
+  function handleFabClick() {
+    const activeTab = document.querySelector('.section.active').id;
+    if(activeTab === 'tab-booking') openModal('modal-add-booking');
+    else if(activeTab === 'tab-shopping') openModal('modal-add-shopping');
+    else if(activeTab === 'tab-work') openModal('modal-add-work');
+    else if(activeTab === 'tab-guest') openModal('modal-add-guest');
+  }
+
+  function toggleSearchMode() {
+    const dMode = document.getElementById('tb-default'); const sMode = document.getElementById('tb-search');
+    if(dMode.style.display === 'none') { dMode.style.display = 'flex'; sMode.style.display = 'none'; document.getElementById('global-search').value = ''; renderAll(); } 
+    else { dMode.style.display = 'none'; sMode.style.display = 'flex'; document.getElementById('global-search').focus(); }
+  }
+
+  function toggleSort() { sortMode = sortMode === 'time' ? 'name' : 'time'; renderAll(); }
+  function sortList(list) { return list.slice().sort((a, b) => { if(sortMode === 'name') return a.name.localeCompare(b.name); return (b.createdAt || 0) - (a.createdAt || 0); }); }
+
+  let activeModal = null;
+  function openModal(modalId) { document.getElementById(modalId).classList.add('active'); activeModal = modalId; history.pushState({ modal: modalId }, '', `#${modalId}`); }
+  
+  function closeModal() {
+    document.querySelectorAll('.modal-overlay').forEach(el => { el.classList.remove('active'); const form = el.querySelector('form'); if(form) form.reset(); });
+    activeModal = null; globalEditId = null;
+    document.getElementById('title-add-booking').innerText = 'Add New Booking'; document.getElementById('btn-save-booking').innerText = 'Save Booking';
+    document.getElementById('b-adv-container').style.display = 'block'; document.getElementById('b-advance').required = true;
+    document.getElementById('title-add-shopping').innerText = 'Add Shopping Item'; document.getElementById('btn-save-shopping').innerText = 'Save Item';
+    document.getElementById('title-add-work').innerText = 'Assign Work'; document.getElementById('btn-save-work').innerText = 'Save Work';
+    document.getElementById('title-add-guest').innerText = 'Mehman Ki Detail'; document.getElementById('btn-save-guest').innerText = 'Save Mehman';
+  }
+
+  function toggleHistory(id) {
+    const el = document.getElementById(id); const icon = document.getElementById(id.replace('hist-', 'icon-'));
+    if(el.style.display === 'none') { el.style.display = 'block'; icon.textContent = '▲ Hide'; } else { el.style.display = 'none'; icon.textContent = '▼ Show'; }
+  }
+
+  function toggleHomeSummary() {
+    const el = document.getElementById('home-summary-container');
+    const icon = document.getElementById('summary-toggle-icon');
+    if(el.style.display === 'none') {
+      el.style.display = 'block';
+      icon.style.transform = 'rotate(180deg)';
+    } else {
+      el.style.display = 'none';
+      icon.style.transform = 'rotate(0deg)';
+    }
+  }
+
+  window.onpopstate = function(event) {
+    if (activeModal) { closeModal(); } else if (event.state && event.state.tab) { switchTab(event.state.tab, false); } else {
+      const activeTab = document.querySelector('.section.active').id;
+      if (activeTab === 'tab-home') {
+        let now = Date.now();
+        if (now - lastBackTime < 2000) { history.back(); } else {
+          lastBackTime = now; let toast = document.getElementById('exit-toast');
+          toast.style.display = 'block'; toast.style.opacity = 1;
+          setTimeout(() => { toast.style.opacity = 0; setTimeout(()=>toast.style.display='none',300); }, 2000);
+          history.pushState({ tab: 'tab-home' }, '', '#home');
+        }
+      } else { switchTab('tab-home', false); }
+    }
+  };
+
+  function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2); }
+
+  function saveBooking(e) {
+    e.preventDefault(); 
+    const name = document.getElementById('b-name').value.trim(); 
+    const phone = document.getElementById('b-phone').value.trim();
+    const total = parseFloat(document.getElementById('b-total').value); 
+    
+    if(globalEditId) { 
+        let item = appData.bookings.find(b => b.id === globalEditId); 
+        if(item) { item.name = name; item.phone = phone; item.total = total; } 
+    } else {
+       const advance = parseFloat(document.getElementById('b-advance').value);
+       appData.bookings.push({ id: generateId(), name, phone, total, advance, payments: advance > 0 ? [{ id: generateId(), date: new Date().toISOString().split('T')[0], amount: advance, note: 'Advance' }] : [], note: '', createdAt: Date.now() });
+    }
+    saveData(); closeModal();
+  }
+
+  function saveShopping(e) {
+    e.preventDefault(); const name = document.getElementById('s-name').value.trim(); const cost = parseFloat(document.getElementById('s-cost').value);
+    if(globalEditId) { let item = appData.shopping.find(s => s.id === globalEditId); if(item) { item.name = name; item.cost = cost; } } else {
+      appData.shopping.push({ id: generateId(), name, cost, purchased: false, note: '', createdAt: Date.now() });
+    }
+    saveData(); closeModal();
+  }
+
+  function saveWork(e) {
+    e.preventDefault(); const name = document.getElementById('w-name').value.trim(); const task = document.getElementById('w-task').value.trim(); const pay = parseFloat(document.getElementById('w-pay').value);
+    if(globalEditId) { let item = appData.workers.find(w => w.id === globalEditId); if(item) { item.name = name; item.task = task; item.totalPay = pay; } } else {
+      appData.workers.push({ id: generateId(), name, task, totalPay: pay, payments: [], attendance: {}, note: '', createdAt: Date.now() });
+    }
+    saveData(); closeModal();
+  }
+
+  function saveGuest(e) {
+    e.preventDefault();
+    const name = document.getElementById('g-name').value.trim(); 
+    const phone = document.getElementById('g-phone').value.trim();
+    const card = document.getElementById('g-card').value === 'true'; 
+    const attend = document.getElementById('g-attend').value === 'true';
+    if(globalEditId) { 
+        let item = appData.guests.find(g => g.id === globalEditId); 
+        if(item) { item.name = name; item.phone = phone; item.cardSent = card; item.attending = attend; } 
+    } else {
+      appData.guests.push({ id: generateId(), name, phone, cardSent: card, attending: attend, note: '', createdAt: Date.now() });
+    }
+    saveData(); closeModal();
+  }
+
+  function openEditModal(type, id) {
+    globalEditId = id;
+    if(type === 'booking') {
+      let item = appData.bookings.find(x => x.id === id); 
+      document.getElementById('b-name').value = item.name; 
+      document.getElementById('b-phone').value = item.phone || ''; 
+      document.getElementById('b-total').value = item.total;
+      document.getElementById('b-adv-container').style.display = 'none'; document.getElementById('b-advance').required = false;
+      document.getElementById('title-add-booking').innerText = 'Edit Booking'; document.getElementById('btn-save-booking').innerText = 'Update'; openModal('modal-add-booking');
+    } else if(type === 'shopping') {
+      let item = appData.shopping.find(x => x.id === id); document.getElementById('s-name').value = item.name; document.getElementById('s-cost').value = item.cost;
+      document.getElementById('title-add-shopping').innerText = 'Edit Item'; document.getElementById('btn-save-shopping').innerText = 'Update'; openModal('modal-add-shopping');
+    } else if(type === 'work') {
+      let item = appData.workers.find(x => x.id === id); document.getElementById('w-name').value = item.name; document.getElementById('w-task').value = item.task; document.getElementById('w-pay').value = item.totalPay;
+      document.getElementById('title-add-work').innerText = 'Edit Work'; document.getElementById('btn-save-work').innerText = 'Update'; openModal('modal-add-work');
+    } else if(type === 'guest') {
+      let item = appData.guests.find(x => x.id === id); document.getElementById('g-name').value = item.name; document.getElementById('g-phone').value = item.phone || '';
+      document.getElementById('g-card').value = item.cardSent; document.getElementById('g-attend').value = item.attending;
+      document.getElementById('title-add-guest').innerText = 'Edit Mehman'; document.getElementById('btn-save-guest').innerText = 'Update'; openModal('modal-add-guest');
+    }
+  }
+
+  function deleteBooking(id) { if(confirm("Delete this booking?")) { appData.bookings = appData.bookings.filter(b => b.id !== id); saveData(); } }
+  function deleteShopping(id) { if(confirm("Delete item?")) { appData.shopping = appData.shopping.filter(s => s.id !== id); saveData(); } }
+  function toggleShopping(id) { const item = appData.shopping.find(s => s.id === id); if(item) { item.purchased = !item.purchased; saveData(); } }
+  function deleteWorker(id) { if(confirm("Remove worker?")) { appData.workers = appData.workers.filter(w => w.id !== id); saveData(); } }
+  function deleteGuest(id) { if(confirm("Remove guest?")) { appData.guests = appData.guests.filter(g => g.id !== id); saveData(); } }
+  function toggleGuest(id, field, val) { const item = appData.guests.find(g => g.id === id); if(item) { item[field] = val; saveData(); } }
+
+  function openPaymentModal(type, id) { document.getElementById('p-type').value = type; document.getElementById('p-id').value = id; document.getElementById('p-amount').value = ''; document.getElementById('p-date').value = new Date().toISOString().split('T')[0]; openModal('modal-add-payment'); }
+  function savePayment(e) {
+    e.preventDefault(); const type = document.getElementById('p-type').value; const id = document.getElementById('p-id').value; const amount = parseFloat(document.getElementById('p-amount').value); const date = document.getElementById('p-date').value;
+    let list = type === 'booking' ? appData.bookings : appData.workers; let item = list.find(x => x.id === id);
+    if(item) { item.payments.push({ id: generateId(), date, amount, note: 'Installment' }); saveData(); closeModal(); }
+  }
+
+  function openNoteModal(type, id) {
+    document.getElementById('n-type').value = type; document.getElementById('n-id').value = id;
+    let list = type === 'booking' ? appData.bookings : (type === 'shopping' ? appData.shopping : (type === 'work' ? appData.workers : appData.guests));
+    let item = list.find(x => x.id === id); document.getElementById('n-text').value = item.note || ''; openModal('modal-add-note');
+  }
+  function saveNote(e) {
+    e.preventDefault(); let type = document.getElementById('n-type').value; let id = document.getElementById('n-id').value; let text = document.getElementById('n-text').value;
+    let list = type === 'booking' ? appData.bookings : (type === 'shopping' ? appData.shopping : (type === 'work' ? appData.workers : appData.guests));
+    let item = list.find(x => x.id === id); if(item) { item.note = text; saveData(); closeModal(); }
+  }
+
+  let currentWorkerAttId = null;
+  function openAttendanceModal(id) { currentWorkerAttId = id; const worker = appData.workers.find(w => w.id === id); document.getElementById('att-worker-name').textContent = worker.name; document.getElementById('att-w-id').value = id; document.getElementById('att-date').value = new Date().toISOString().split('T')[0]; renderAttendanceGrid(); openModal('modal-attendance'); }
+  function markAttendance(status) { const date = document.getElementById('att-date').value; const worker = appData.workers.find(w => w.id === currentWorkerAttId); if(worker && date) { worker.attendance[date] = status; saveData(); renderAttendanceGrid(); } }
+  function renderAttendanceGrid() { const worker = appData.workers.find(w => w.id === currentWorkerAttId); const grid = document.getElementById('att-grid'); grid.innerHTML = ''; if(!worker) return; Object.keys(worker.attendance).sort((a,b) => new Date(b) - new Date(a)).forEach(d => { const stat = worker.attendance[d]; const div = document.createElement('div'); div.className = `att-box ${stat.toLowerCase()}`; div.textContent = d.split('-')[2] + "\n" + (stat==='Present'?'P':'A'); div.title = d; grid.appendChild(div); }); }
+
+  function formatMoney(amt) { return '₹' + amt.toLocaleString('en-IN'); }
+  
+  function renderPhoneLinks(phoneString) {
+    if(!phoneString) return '';
+    return phoneString.split(',').map(p => {
+        let num = p.trim();
+        if(!num) return '';
+        return `<a href="tel:${num}" style="color:var(--accent); text-decoration:none; font-weight:600; display:inline-flex; align-items:center; gap:4px; margin-right:12px; font-size: 0.85rem;"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>${num}</a>`;
+    }).join('');
+  }
+
+  function renderAll() { renderHome(); renderBookings(); renderShopping(); renderWork(); renderGuests(); }
+
+  const svgNote = `<svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>`;
+  const svgEdit = `<svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>`;
+  const svgDel = `<svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>`;
+
+  function getActionBtns(type, id, hasNote) {
+    const noteColor = hasNote ? 'color:var(--accent);' : '';
+    return `<div class="card-actions"><button class="card-action-btn" style="${noteColor}" onclick="openNoteModal('${type}', '${id}')" title="Note">${svgNote}</button><button class="card-action-btn" onclick="openEditModal('${type}', '${id}')" title="Edit">${svgEdit}</button><button class="card-action-btn del" onclick="delete${type.charAt(0).toUpperCase() + type.slice(1)}('${id}')" title="Delete">${svgDel}</button></div>`;
+  }
+
+  function renderHome() {
+    let bTotal = 0, bPaid = 0, bDue = 0; appData.bookings.forEach(b => { bTotal += b.total; let p = b.payments.reduce((s, x) => s + x.amount, 0); bPaid += p; bDue += (b.total - p); });
+    let sTotalCost = 0, sPendItems = 0, sPendCost = 0; appData.shopping.forEach(s => { sTotalCost += s.cost; if(!s.purchased){ sPendItems++; sPendCost+=s.cost; }});
+    let wTotal = 0, wPaid = 0, wDue = 0; appData.workers.forEach(w => { wTotal += w.totalPay; let p = w.payments.reduce((s, x) => s + x.amount, 0); wPaid += p; wDue += (w.totalPay - p); });
+    let gAttending = 0, gPendingCards = 0; appData.guests.forEach(g => { if(g.attending) gAttending++; if(!g.cardSent) gPendingCards++; });
+
+    document.getElementById('home-summary-container').innerHTML = `
+      <div class="card"><div class="card-header"><h3>📅 Booking & Services</h3></div><div class="data-row"><span>Bookings:</span> <strong>${appData.bookings.length}</strong></div><div class="data-row"><span>Received:</span> <strong class="success">${formatMoney(bPaid)}</strong></div><div class="data-row"><span>Bakaya:</span> <strong class="danger">${formatMoney(bDue)}</strong></div></div>
+      <div class="card"><div class="card-header"><h3>👨‍👩‍👧‍👦 Mehman (Guests)</h3></div><div class="data-row"><span>Total Guests:</span> <strong>${appData.guests.length}</strong></div><div class="data-row"><span>Attending:</span> <strong class="success">${gAttending}</strong></div><div class="data-row"><span>Cards Pending:</span> <strong class="danger">${gPendingCards}</strong></div></div>
+      <div class="card"><div class="card-header"><h3>🛒 Shopping Lists</h3></div><div class="data-row"><span>Pending Items:</span> <strong>${sPendItems}</strong></div><div class="data-row"><span>Pending Cost:</span> <strong class="danger">${formatMoney(sPendCost)}</strong></div></div>
+      <div class="card"><div class="card-header"><h3>👷 Work & Staff</h3></div><div class="data-row"><span>Workers:</span> <strong>${appData.workers.length}</strong></div><div class="data-row"><span>Bakaya To Pay:</span> <strong class="danger">${formatMoney(wDue)}</strong></div></div>
+    `;
+  }
+
+  function renderBookings() {
+    let tTotal = 0, tPaid = 0, tDue = 0; const q = document.getElementById('global-search').value.toLowerCase(); const list = document.getElementById('booking-list'); list.innerHTML = ''; let filtered = appData.bookings.filter(b => b.name.toLowerCase().includes(q));
+    appData.bookings.forEach(b => { tTotal += b.total; let p = b.payments.reduce((s,x)=>s+x.amount,0); tPaid += p; tDue += (b.total - p); });
+    document.getElementById('booking-summary').innerHTML = `<div class="stat-box"><span>Fixed</span><strong>${formatMoney(tTotal)}</strong></div><div class="summary-divider"></div><div class="stat-box"><span>Paid</span><strong>${formatMoney(tPaid)}</strong></div><div class="summary-divider"></div><div class="stat-box"><span>Bakaya</span><strong>${formatMoney(tDue)}</strong></div>`;
+    filtered = sortList(filtered); if(!filtered.length) { list.innerHTML = '<p style="text-align:center; margin-top:20px;">No bookings found.</p>'; return; }
+    filtered.forEach(b => {
+      let paid = b.payments.reduce((s,p) => s+p.amount, 0); let bal = b.total - paid;
+      let phoneHtml = renderPhoneLinks(b.phone);
+      list.insertAdjacentHTML('beforeend', `<div class="card"><div class="card-header" style="flex-wrap:wrap;"><div><h3 style="margin-bottom:4px;">${b.name}</h3>${phoneHtml}</div><div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">${getActionBtns('booking', b.id, !!b.note)}<span class="badge ${bal <= 0 ? 'success' : 'danger'}">${bal <= 0 ? 'Clear' : 'Pending'}</span></div></div><div class="data-row"><span>Total:</span> <strong>${formatMoney(b.total)}</strong></div><div class="data-row"><span>Paid:</span> <strong>${formatMoney(paid)}</strong></div><div class="data-row"><span>Bakaya:</span> <strong class="${bal > 0 ? 'danger' : ''}">${formatMoney(bal)}</strong></div>${b.note ? `<div class="note-box"><i>📝 ${b.note}</i></div>` : ''}<div class="history-list"><div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; padding-top:6px;" onclick="toggleHistory('hist-${b.id}')"><h4 style="font-size:0.8rem; color:var(--text);">History</h4><span id="icon-${b.id}" style="font-size:0.7rem; color:var(--text-muted); font-weight:bold;">▼ Show</span></div><div id="hist-${b.id}" style="display:none; margin-top:8px;">${b.payments.length ? b.payments.map(p => `<div class="history-item"><span>${p.date}</span> <strong>${formatMoney(p.amount)}</strong></div>`).join('') : '<span style="font-size:0.75rem;">No payments yet.</span>'}</div></div><div style="margin-top:12px;"><button class="btn btn-secondary" style="width:100%;" onclick="openPaymentModal('booking', '${b.id}')">+ Add Payment</button></div></div>`);
+    });
+  }
+
+  function renderShopping() {
+    let tAllCost = 0, tAllItems = 0, tPendItems = 0, tPendCost = 0; const q = document.getElementById('global-search').value.toLowerCase(); const list = document.getElementById('shopping-list'); list.innerHTML = ''; let filtered = appData.shopping.filter(s => s.name.toLowerCase().includes(q));
+    appData.shopping.forEach(s => { tAllItems++; tAllCost+=s.cost; if(!s.purchased) { tPendItems++; tPendCost += s.cost; } });
+    document.getElementById('shopping-summary').innerHTML = `<div class="stat-box"><span>All Items</span><strong>${tAllItems} (${formatMoney(tAllCost)})</strong></div><div class="summary-divider"></div><div class="stat-box"><span>Pending</span><strong>${tPendItems} (${formatMoney(tPendCost)})</strong></div>`;
+    filtered = sortList(filtered); if(!filtered.length) { list.innerHTML = '<p style="text-align:center; margin-top:20px;">No items found.</p>'; return; }
+    filtered.forEach(s => { list.insertAdjacentHTML('beforeend', `<div class="card" style="${s.purchased ? 'opacity:0.6;' : ''}"><div class="card-header" style="margin-bottom:6px; padding-bottom:6px;"><h3 style="${s.purchased ? 'text-decoration:line-through; color:var(--text-muted);' : ''}">${s.name}</h3>${getActionBtns('shopping', s.id, !!s.note)}</div><div class="data-row"><span>Estimated Cost:</span> <strong style="font-size:1.05rem;">${formatMoney(s.cost)}</strong></div><div style="margin-top:8px;"><button class="btn ${s.purchased ? 'btn-secondary' : 'btn-primary'} btn-sm" onclick="toggleShopping('${s.id}')">${s.purchased ? 'Undo' : 'Mark Bought'}</button></div>${s.note ? `<div class="note-box"><i>📝 ${s.note}</i></div>` : ''}</div>`); });
+  }
+
+  function renderWork() {
+    let tTotal = 0, tPaid = 0, tDue = 0; const q = document.getElementById('global-search').value.toLowerCase(); const list = document.getElementById('work-list'); list.innerHTML = ''; let filtered = appData.workers.filter(w => w.name.toLowerCase().includes(q) || w.task.toLowerCase().includes(q));
+    appData.workers.forEach(w => { tTotal += w.totalPay; let p = w.payments.reduce((s,x)=>s+x.amount,0); tPaid += p; tDue += (w.totalPay - p); });
+    document.getElementById('work-summary').innerHTML = `<div class="stat-box"><span>Total Pay</span><strong>${formatMoney(tTotal)}</strong></div><div class="summary-divider"></div><div class="stat-box"><span>Paid</span><strong>${formatMoney(tPaid)}</strong></div><div class="summary-divider"></div><div class="stat-box"><span>Bakaya</span><strong>${formatMoney(tDue)}</strong></div>`;
+    filtered = sortList(filtered); if(!filtered.length) { list.innerHTML = '<p style="text-align:center; margin-top:20px;">No workers found.</p>'; return; }
+    filtered.forEach(w => {
+      let paid = w.payments.reduce((s,p) => s+p.amount, 0); let bal = w.totalPay - paid;
+      list.insertAdjacentHTML('beforeend', `<div class="card"><div class="card-header"><h3>${w.name} <br><span class="badge" style="background:rgba(59, 130, 246, 0.1); color:var(--accent); margin-top:4px; display:inline-block;">${w.task}</span></h3>${getActionBtns('worker', w.id, !!w.note)}</div><div class="data-row"><span>Fixed Pay:</span> <strong>${formatMoney(w.totalPay)}</strong></div><div class="data-row"><span>Paid:</span> <strong>${formatMoney(paid)}</strong></div><div class="data-row"><span>Bakaya:</span> <strong class="${bal > 0 ? 'danger' : ''}">${formatMoney(bal)}</strong></div>${w.note ? `<div class="note-box"><i>📝 ${w.note}</i></div>` : ''}<div class="history-list"><div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; padding-top:6px;" onclick="toggleHistory('hist-${w.id}')"><h4 style="font-size:0.8rem; color:var(--text);">History</h4><span id="icon-${w.id}" style="font-size:0.7rem; color:var(--text-muted); font-weight:bold;">▼ Show</span></div><div id="hist-${w.id}" style="display:none; margin-top:8px;">${w.payments.length ? w.payments.map(p => `<div class="history-item"><span>${p.date}</span> <strong>${formatMoney(p.amount)}</strong></div>`).join('') : '<span style="font-size:0.75rem;">No payments yet.</span>'}</div></div><div style="display:flex; gap:8px; margin-top:12px;"><button class="btn btn-primary" style="flex:1;" onclick="openAttendanceModal('${w.id}')">Hajiri</button><button class="btn btn-secondary" style="flex:1;" onclick="openPaymentModal('worker', '${w.id}')">+ Pay</button></div></div>`);
+    });
+  }
+
+  function renderGuests() {
+    let tAll = 0, tAttend = 0, tPendCard = 0; const q = document.getElementById('global-search').value.toLowerCase(); const list = document.getElementById('guest-list'); list.innerHTML = ''; let filtered = appData.guests.filter(g => g.name.toLowerCase().includes(q));
+    appData.guests.forEach(g => { tAll++; if(g.attending) tAttend++; if(!g.cardSent) tPendCard++; });
+    document.getElementById('guest-summary').innerHTML = `<div class="stat-box"><span>Total Mehman</span><strong>${tAll}</strong></div><div class="summary-divider"></div><div class="stat-box"><span>Aa Rahe</span><strong>${tAttend}</strong></div><div class="summary-divider"></div><div class="stat-box"><span>Card Pending</span><strong>${tPendCard}</strong></div>`;
+    filtered = sortList(filtered); if(!filtered.length) { list.innerHTML = '<p style="text-align:center; margin-top:20px;">No guests found.</p>'; return; }
+    filtered.forEach(g => {
+      let phoneHtml = renderPhoneLinks(g.phone);
+      list.insertAdjacentHTML('beforeend', `<div class="card"><div class="card-header" style="margin-bottom:6px; padding-bottom:6px;"><div><h3 style="margin-bottom:4px;">${g.name}</h3>${phoneHtml}</div>${getActionBtns('guest', g.id, !!g.note)}</div><div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;"><span style="font-size:0.85rem;">Card Bheja?</span><label class="switch"><input type="checkbox" ${g.cardSent?'checked':''} onchange="toggleGuest('${g.id}','cardSent',this.checked)"><span class="slider"></span></label></div><div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;"><span style="font-size:0.85rem;">Aa Rahe Hai?</span><label class="switch"><input type="checkbox" ${g.attending?'checked':''} onchange="toggleGuest('${g.id}','attending',this.checked)"><span class="slider"></span></label></div>${g.note ? `<div class="note-box"><i>📝 ${g.note}</i></div>` : ''}</div>`);
+    });
+  }
+
+  function applySettings() { document.documentElement.setAttribute('data-theme', appData.settings.theme); document.documentElement.setAttribute('data-card-style', appData.settings.cardStyle); document.getElementById('set-theme').value = appData.settings.theme; document.getElementById('set-card').value = appData.settings.cardStyle; }
+  function updateSettings() { appData.settings.theme = document.getElementById('set-theme').value; appData.settings.cardStyle = document.getElementById('set-card').value; saveData(); applySettings(); }
+  function exportData() { const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData)); const a = document.createElement('a'); a.setAttribute("href", dataStr); a.setAttribute("download", `ManagerPro_Backup.json`); document.body.appendChild(a); a.click(); a.remove(); }
+  function importData(event) { const file = event.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = function(e) { try { const imp = JSON.parse(e.target.result); if(imp.bookings) { appData = imp; ensureDataStructure(); saveData(); alert("Data Imported Successfully!"); closeModal(); } } catch(err) { alert("Invalid JSON File"); } }; reader.readAsText(file); event.target.value = ''; }
+  function resetApp() { if(confirm("DANGER: Are you sure you want to delete all data?")) { appData = { bookings: [], shopping: [], workers: [], guests: [], settings: appData.settings }; saveData(); closeModal(); } }
+
+</script>
+  <script>
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js');
+</script>
+</body>
+</html>
