@@ -175,7 +175,6 @@
         <svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 2L2 22h20L12 2zm0 4.5l6.5 13.5h-13L12 6.5z"/></svg> Manager Pro
       </h1>
       <div style="display: flex; gap: 4px;">
-        <button class="icon-btn" onclick="toggleSort()" title="Sort"><svg viewBox="0 0 24 24"><path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z"/></svg></button>
         <button class="icon-btn" onclick="toggleSearchMode()"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg></button>
         <button class="icon-btn" onclick="openModal('modal-settings')"><svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94L14.4 2.81c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41L9.25 5.35C8.66 5.59 8.12 5.92 7.63 6.3L5.24 5.34c-.22-.08-.47 0-.59.22L2.73 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .43-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.49-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg></button>
       </div>
@@ -208,10 +207,42 @@
 
       <div id="home-summary-container" style="display: none;"></div>
     </section>
-    <section id="tab-booking" class="section"><div id="booking-summary" class="summary-bar"></div><div id="booking-list"></div></section>
-    <section id="tab-shopping" class="section"><div id="shopping-summary" class="summary-bar"></div><div id="shopping-list"></div></section>
-    <section id="tab-work" class="section"><div id="work-summary" class="summary-bar"></div><div id="work-list"></div></section>
-    <section id="tab-guest" class="section"><div id="guest-summary" class="summary-bar"></div><div id="guest-list"></div></section>
+    
+    <section id="tab-booking" class="section">
+      <div style="display:flex; justify-content:flex-end; margin-bottom:8px;"><button class="icon-btn" onclick="toggleSort('time')" title="Sort"><svg viewBox="0 0 24 24"><path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z"/></svg></button></div>
+      <div id="booking-summary" class="summary-bar"></div>
+      <div id="booking-list"></div>
+    </section>
+    
+    <section id="tab-shopping" class="section">
+      <div style="display:flex; justify-content:flex-end; margin-bottom:8px;"><button class="icon-btn" onclick="toggleSort('time')" title="Sort"><svg viewBox="0 0 24 24"><path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z"/></svg></button></div>
+      <div id="shopping-summary" class="summary-bar"></div>
+      <div id="shopping-list"></div>
+    </section>
+    
+    <section id="tab-work" class="section">
+      <div style="display:flex; justify-content:flex-end; margin-bottom:8px;"><button class="icon-btn" onclick="toggleSort('time')" title="Sort"><svg viewBox="0 0 24 24"><path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z"/></svg></button></div>
+      <div id="work-summary" class="summary-bar"></div>
+      <div id="work-list"></div>
+    </section>
+    
+    <section id="tab-guest" class="section">
+      <div id="guest-summary" class="summary-bar" style="flex-wrap: wrap; gap: 8px;"></div>
+      
+      <div style="display:flex; gap:6px; margin-bottom:12px;">
+        <select id="filter-card" onchange="renderGuests()" style="margin:0; font-size:0.75rem; padding:8px; border-radius:6px; flex:1;">
+          <option value="all">Cards (All)</option><option value="sent">Bheje Gye</option><option value="pending">Pending</option>
+        </select>
+        <select id="filter-gift" onchange="renderGuests()" style="margin:0; font-size:0.75rem; padding:8px; border-radius:6px; flex:1;">
+          <option value="all">Gifts (All)</option><option value="pending">Dene Hai</option><option value="none">Nahi Dene</option>
+        </select>
+        <select id="sort-guest" onchange="renderGuests()" style="margin:0; font-size:0.75rem; padding:8px; border-radius:6px; flex:1;">
+          <option value="time">Latest</option><option value="az">A to Z</option><option value="za">Z to A</option>
+        </select>
+      </div>
+      
+      <div id="guest-list"></div>
+    </section>
   </main>
 
   <button id="global-fab" class="fab-btn" onclick="handleFabClick()"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></button>
@@ -272,20 +303,38 @@
   <div class="modal-content">
     <div class="modal-header"><h2 id="title-add-guest">Mehman Ki Detail</h2><button class="icon-btn" onclick="closeModal()"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button></div>
     <form id="form-guest" onsubmit="saveGuest(event)">
-      <label class="form-label" style="font-size:0.8rem; font-weight:600;">Naam (Family/Person)</label><input type="text" id="g-name" required>
-      <label class="form-label" style="font-size:0.8rem; font-weight:600;">Phone (Comma separated for multiple)</label><input type="text" id="g-phone" placeholder="e.g. 9876543210, 9988776655">
-      <div style="display:flex; gap:16px;">
-        <div style="flex:1;">
+      <label class="form-label" style="font-size:0.8rem; font-weight:600;">Naam (Family/Person) *</label><input type="text" id="g-name" required>
+      <label class="form-label" style="font-size:0.8rem; font-weight:600;">Gaon / Shahar (City)</label><input type="text" id="g-city">
+      <label class="form-label" style="font-size:0.8rem; font-weight:600;">Phone Numbers</label>
+      <div id="g-phone-container"></div>
+      <button type="button" class="btn btn-secondary btn-sm" style="margin-bottom:12px; width:100%; border:1px dashed var(--border);" onclick="addPhoneInput()">+ Add New Phone Number</button>
+      
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <div style="flex:1; min-width:45%;">
           <label class="form-label" style="font-size:0.8rem; font-weight:600;">Card Bheja?</label>
-          <select id="g-card"><option value="false">Nahi</option><option value="true">Haan</option></select>
+          <select id="g-card"><option value="false">No</option><option value="true">Yes</option></select>
         </div>
-        <div style="flex:1;">
-          <label class="form-label" style="font-size:0.8rem; font-weight:600;">Aa Rahe Hai?</label>
-          <select id="g-attend"><option value="false">Nahi</option><option value="true">Haan</option></select>
+        <div style="flex:1; min-width:45%;">
+          <label class="form-label" style="font-size:0.8rem; font-weight:600;">Aa Gye?</label>
+          <select id="g-attend"><option value="false">No</option><option value="true">Yes</option></select>
+        </div>
+        <div style="flex:1; min-width:100%;">
+          <label class="form-label" style="font-size:0.8rem; font-weight:600;">Gift Dena Hai?</label>
+          <select id="g-gift"><option value="false">No</option><option value="true">Yes</option></select>
         </div>
       </div>
       <button type="submit" id="btn-save-guest" class="btn btn-primary" style="margin-top: 4px;">Save Mehman</button>
     </form>
+  </div>
+</div>
+
+<div id="modal-card-mode" class="modal-overlay" style="z-index: 200;">
+  <div class="modal-content" style="max-width:300px; text-align:center;">
+    <h2 style="font-size:1.1rem; margin-bottom:16px;">Card Kaise Bheja?</h2>
+    <input type="hidden" id="temp-guest-id">
+    <button class="btn btn-primary" style="width:100%; margin-bottom:10px; background:#10b981;" onclick="confirmCardMode('Offline')">🏠 Ghar Jake Diya</button>
+    <button class="btn btn-primary" style="width:100%; margin-bottom:10px; background:#25D366;" onclick="confirmCardMode('WhatsApp')">📱 WhatsApp Par</button>
+    <button class="btn btn-secondary" style="width:100%;" onclick="cancelCardMode()">Cancel</button>
   </div>
 </div>
 
@@ -441,13 +490,18 @@
     else { dMode.style.display = 'none'; sMode.style.display = 'flex'; document.getElementById('global-search').focus(); }
   }
 
-  function toggleSort() { sortMode = sortMode === 'time' ? 'name' : 'time'; renderAll(); }
+  function toggleSort(forceMode) {
+    if(forceMode) { sortMode = forceMode; } else { sortMode = sortMode === 'time' ? 'name' : 'time'; }
+    renderAll();
+  }
+  
   function sortList(list) { return list.slice().sort((a, b) => { if(sortMode === 'name') return a.name.localeCompare(b.name); return (b.createdAt || 0) - (a.createdAt || 0); }); }
 
   let activeModal = null;
   function openModal(modalId) { document.getElementById(modalId).classList.add('active'); activeModal = modalId; history.pushState({ modal: modalId }, '', `#${modalId}`); }
   
   function closeModal() {
+    const pc = document.getElementById('g-phone-container'); if(pc) pc.innerHTML = '';
     document.querySelectorAll('.modal-overlay').forEach(el => { el.classList.remove('active'); const form = el.querySelector('form'); if(form) form.reset(); });
     activeModal = null; globalEditId = null;
     document.getElementById('title-add-booking').innerText = 'Add New Booking'; document.getElementById('btn-save-booking').innerText = 'Save Booking';
@@ -465,13 +519,8 @@
   function toggleHomeSummary() {
     const el = document.getElementById('home-summary-container');
     const icon = document.getElementById('summary-toggle-icon');
-    if(el.style.display === 'none') {
-      el.style.display = 'block';
-      icon.style.transform = 'rotate(180deg)';
-    } else {
-      el.style.display = 'none';
-      icon.style.transform = 'rotate(0deg)';
-    }
+    if(el.style.display === 'none') { el.style.display = 'block'; icon.style.transform = 'rotate(180deg)'; } 
+    else { el.style.display = 'none'; icon.style.transform = 'rotate(0deg)'; }
   }
 
   window.onpopstate = function(event) {
@@ -523,17 +572,47 @@
     saveData(); closeModal();
   }
 
+  // --- Guest Helpers & Save Logic ---
+  function addPhoneInput(val = '') {
+    const container = document.getElementById('g-phone-container');
+    const div = document.createElement('div');
+    div.style.display = 'flex'; div.style.gap = '6px'; div.style.marginBottom = '8px';
+    div.innerHTML = `<input type="number" class="g-phone-input" placeholder="Enter number..." style="margin:0; flex:1;" value="${val}">
+                     <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">X</button>`;
+    container.appendChild(div);
+  }
+
+  function confirmCardMode(mode) {
+    const id = document.getElementById('temp-guest-id').value;
+    const item = appData.guests.find(g => g.id === id);
+    if(item) { item.cardSent = true; item.cardMode = mode; saveData(); }
+    document.getElementById('modal-card-mode').classList.remove('active');
+  }
+
+  function cancelCardMode() {
+    const id = document.getElementById('temp-guest-id').value;
+    const item = appData.guests.find(g => g.id === id);
+    if(item) { item.cardSent = false; saveData(); }
+    document.getElementById('modal-card-mode').classList.remove('active');
+  }
+
   function saveGuest(e) {
     e.preventDefault();
     const name = document.getElementById('g-name').value.trim(); 
-    const phone = document.getElementById('g-phone').value.trim();
+    const city = document.getElementById('g-city').value.trim();
+    const phoneInputs = document.querySelectorAll('.g-phone-input');
+    let phones = [];
+    phoneInputs.forEach(inp => { if(inp.value.trim()) phones.push(inp.value.trim()); });
+    
     const card = document.getElementById('g-card').value === 'true'; 
     const attend = document.getElementById('g-attend').value === 'true';
+    const gift = document.getElementById('g-gift').value === 'true';
+
     if(globalEditId) { 
         let item = appData.guests.find(g => g.id === globalEditId); 
-        if(item) { item.name = name; item.phone = phone; item.cardSent = card; item.attending = attend; } 
+        if(item) { item.name = name; item.city = city; item.phones = phones; item.cardSent = card; item.attending = attend; item.gift = gift; } 
     } else {
-      appData.guests.push({ id: generateId(), name, phone, cardSent: card, attending: attend, note: '', createdAt: Date.now() });
+      appData.guests.push({ id: generateId(), name, city, phones, cardSent: card, attending: attend, gift: gift, cardMode: '', note: '', createdAt: Date.now() });
     }
     saveData(); closeModal();
   }
@@ -554,8 +633,15 @@
       let item = appData.workers.find(x => x.id === id); document.getElementById('w-name').value = item.name; document.getElementById('w-task').value = item.task; document.getElementById('w-pay').value = item.totalPay;
       document.getElementById('title-add-work').innerText = 'Edit Work'; document.getElementById('btn-save-work').innerText = 'Update'; openModal('modal-add-work');
     } else if(type === 'guest') {
-      let item = appData.guests.find(x => x.id === id); document.getElementById('g-name').value = item.name; document.getElementById('g-phone').value = item.phone || '';
-      document.getElementById('g-card').value = item.cardSent; document.getElementById('g-attend').value = item.attending;
+      let item = appData.guests.find(x => x.id === id); 
+      document.getElementById('g-name').value = item.name; 
+      document.getElementById('g-city').value = item.city || '';
+      document.getElementById('g-phone-container').innerHTML = '';
+      let phonesArray = item.phones || (item.phone ? [item.phone] : []);
+      if(phonesArray.length) { phonesArray.forEach(p => addPhoneInput(p)); } 
+      document.getElementById('g-card').value = item.cardSent; 
+      document.getElementById('g-attend').value = item.attending;
+      document.getElementById('g-gift').value = item.gift || false;
       document.getElementById('title-add-guest').innerText = 'Edit Mehman'; document.getElementById('btn-save-guest').innerText = 'Update'; openModal('modal-add-guest');
     }
   }
@@ -565,7 +651,19 @@
   function toggleShopping(id) { const item = appData.shopping.find(s => s.id === id); if(item) { item.purchased = !item.purchased; saveData(); } }
   function deleteWorker(id) { if(confirm("Remove worker?")) { appData.workers = appData.workers.filter(w => w.id !== id); saveData(); } }
   function deleteGuest(id) { if(confirm("Remove guest?")) { appData.guests = appData.guests.filter(g => g.id !== id); saveData(); } }
-  function toggleGuest(id, field, val) { const item = appData.guests.find(g => g.id === id); if(item) { item[field] = val; saveData(); } }
+
+  function toggleGuest(id, field, val) { 
+    const item = appData.guests.find(g => g.id === id); 
+    if(item) { 
+      if(field === 'cardSent' && val === true) {
+        document.getElementById('temp-guest-id').value = id;
+        document.getElementById('modal-card-mode').classList.add('active');
+        return; // Don't save yet
+      }
+      if(field === 'cardSent' && val === false) item.cardMode = '';
+      item[field] = val; saveData(); 
+    } 
+  }
 
   function openPaymentModal(type, id) { document.getElementById('p-type').value = type; document.getElementById('p-id').value = id; document.getElementById('p-amount').value = ''; document.getElementById('p-date').value = new Date().toISOString().split('T')[0]; openModal('modal-add-payment'); }
   function savePayment(e) {
@@ -620,7 +718,7 @@
 
     document.getElementById('home-summary-container').innerHTML = `
       <div class="card"><div class="card-header"><h3>📅 Booking & Services</h3></div><div class="data-row"><span>Bookings:</span> <strong>${appData.bookings.length}</strong></div><div class="data-row"><span>Received:</span> <strong class="success">${formatMoney(bPaid)}</strong></div><div class="data-row"><span>Bakaya:</span> <strong class="danger">${formatMoney(bDue)}</strong></div></div>
-      <div class="card"><div class="card-header"><h3>👨‍👩‍👧‍👦 Mehman (Guests)</h3></div><div class="data-row"><span>Total Guests:</span> <strong>${appData.guests.length}</strong></div><div class="data-row"><span>Attending:</span> <strong class="success">${gAttending}</strong></div><div class="data-row"><span>Cards Pending:</span> <strong class="danger">${gPendingCards}</strong></div></div>
+      <div class="card"><div class="card-header"><h3>👨‍👩‍👧‍👦 Mehman (Guests)</h3></div><div class="data-row"><span>Total Guests:</span> <strong>${appData.guests.length}</strong></div><div class="data-row"><span>Aa Gye:</span> <strong class="success">${gAttending}</strong></div><div class="data-row"><span>Cards Pending:</span> <strong class="danger">${gPendingCards}</strong></div></div>
       <div class="card"><div class="card-header"><h3>🛒 Shopping Lists</h3></div><div class="data-row"><span>Pending Items:</span> <strong>${sPendItems}</strong></div><div class="data-row"><span>Pending Cost:</span> <strong class="danger">${formatMoney(sPendCost)}</strong></div></div>
       <div class="card"><div class="card-header"><h3>👷 Work & Staff</h3></div><div class="data-row"><span>Workers:</span> <strong>${appData.workers.length}</strong></div><div class="data-row"><span>Bakaya To Pay:</span> <strong class="danger">${formatMoney(wDue)}</strong></div></div>
     `;
@@ -658,13 +756,78 @@
   }
 
   function renderGuests() {
-    let tAll = 0, tAttend = 0, tPendCard = 0; const q = document.getElementById('global-search').value.toLowerCase(); const list = document.getElementById('guest-list'); list.innerHTML = ''; let filtered = appData.guests.filter(g => g.name.toLowerCase().includes(q));
-    appData.guests.forEach(g => { tAll++; if(g.attending) tAttend++; if(!g.cardSent) tPendCard++; });
-    document.getElementById('guest-summary').innerHTML = `<div class="stat-box"><span>Total Mehman</span><strong>${tAll}</strong></div><div class="summary-divider"></div><div class="stat-box"><span>Aa Rahe</span><strong>${tAttend}</strong></div><div class="summary-divider"></div><div class="stat-box"><span>Card Pending</span><strong>${tPendCard}</strong></div>`;
-    filtered = sortList(filtered); if(!filtered.length) { list.innerHTML = '<p style="text-align:center; margin-top:20px;">No guests found.</p>'; return; }
+    let tAll = 0, tAttend = 0, tPendCard = 0, tPendGift = 0; 
+    const q = document.getElementById('global-search').value.toLowerCase(); 
+    const fCard = document.getElementById('filter-card').value;
+    const fGift = document.getElementById('filter-gift').value;
+    const sSort = document.getElementById('sort-guest').value;
+    
+    const list = document.getElementById('guest-list'); list.innerHTML = ''; 
+    
+    appData.guests.forEach(g => { 
+      tAll++; 
+      if(g.attending) tAttend++; 
+      if(!g.cardSent) tPendCard++; 
+      if(g.gift) tPendGift++; 
+    });
+    
+    document.getElementById('guest-summary').innerHTML = `
+      <div class="stat-box" style="flex: 1 1 40%; margin-bottom: 4px;"><span>Total Mehman</span><strong>${tAll}</strong></div>
+      <div class="stat-box" style="flex: 1 1 40%; margin-bottom: 4px;"><span>Aa Gye</span><strong class="success">${tAttend}</strong></div>
+      <div class="stat-box" style="flex: 1 1 40%;"><span>Card Pending</span><strong class="danger">${tPendCard}</strong></div>
+      <div class="stat-box" style="flex: 1 1 40%;"><span>Gift Dene Hai</span><strong style="color:#f59e0b;">${tPendGift}</strong></div>
+    `;
+    
+    let filtered = appData.guests.filter(g => {
+      let matchSearch = g.name.toLowerCase().includes(q) || (g.city && g.city.toLowerCase().includes(q));
+      let matchCard = (fCard === 'all') ? true : (fCard === 'sent' ? g.cardSent : !g.cardSent);
+      let matchGift = (fGift === 'all') ? true : (fGift === 'pending' ? g.gift : !g.gift);
+      return matchSearch && matchCard && matchGift;
+    });
+
+    filtered.sort((a, b) => {
+      if(sSort === 'az') return a.name.localeCompare(b.name);
+      if(sSort === 'za') return b.name.localeCompare(a.name);
+      return (b.createdAt || 0) - (a.createdAt || 0); // fallback for 'time' / latest
+    });
+
+    if(!filtered.length) { list.innerHTML = '<p style="text-align:center; margin-top:20px;">No guests found.</p>'; return; }
+    
     filtered.forEach(g => {
-      let phoneHtml = renderPhoneLinks(g.phone);
-      list.insertAdjacentHTML('beforeend', `<div class="card"><div class="card-header" style="margin-bottom:6px; padding-bottom:6px;"><div><h3 style="margin-bottom:4px;">${g.name}</h3>${phoneHtml}</div>${getActionBtns('guest', g.id, !!g.note)}</div><div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;"><span style="font-size:0.85rem;">Card Bheja?</span><label class="switch"><input type="checkbox" ${g.cardSent?'checked':''} onchange="toggleGuest('${g.id}','cardSent',this.checked)"><span class="slider"></span></label></div><div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;"><span style="font-size:0.85rem;">Aa Rahe Hai?</span><label class="switch"><input type="checkbox" ${g.attending?'checked':''} onchange="toggleGuest('${g.id}','attending',this.checked)"><span class="slider"></span></label></div>${g.note ? `<div class="note-box"><i>📝 ${g.note}</i></div>` : ''}</div>`);
+      let phoneHtml = '';
+      let phonesArray = g.phones || (g.phone ? [g.phone] : []);
+      if(phonesArray.length) {
+        phoneHtml = phonesArray.map(p => `<a href="tel:${p}" style="color:var(--accent); text-decoration:none; font-weight:600; display:inline-flex; align-items:center; gap:4px; margin-right:12px; font-size: 0.8rem;"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>${p}</a>`).join('');
+      }
+
+      list.insertAdjacentHTML('beforeend', `
+      <div class="card" style="padding:14px;">
+        <div class="card-header" style="margin-bottom:8px; padding-bottom:8px;">
+          <div>
+            <h3 style="margin-bottom:2px; font-size:1.1rem; color:var(--accent);">${g.name}</h3>
+            ${g.city ? `<div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:6px; font-weight:600;">📍 ${g.city}</div>` : ''}
+            <div style="margin-top:4px;">${phoneHtml}</div>
+          </div>
+          ${getActionBtns('guest', g.id, !!g.note)}
+        </div>
+        
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; flex-wrap:wrap; gap:10px;">
+          <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+            <span style="font-size:0.75rem; font-weight:600;">Card Bheja? ${g.cardMode ? `<br><small style="color:var(--success);">(${g.cardMode})</small>` : ''}</span>
+            <label class="switch"><input type="checkbox" ${g.cardSent?'checked':''} onchange="toggleGuest('${g.id}','cardSent',this.checked)"><span class="slider"></span></label>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+            <span style="font-size:0.75rem; font-weight:600;">Aa Gye?</span>
+            <label class="switch"><input type="checkbox" ${g.attending?'checked':''} onchange="toggleGuest('${g.id}','attending',this.checked)"><span class="slider"></span></label>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+            <span style="font-size:0.75rem; font-weight:600;">Gift Dena Hai?</span>
+            <label class="switch"><input type="checkbox" ${g.gift?'checked':''} onchange="toggleGuest('${g.id}','gift',this.checked)"><span class="slider"></span></label>
+          </div>
+        </div>
+
+        ${g.note ? `<div class="note-box" style="margin-top:10px;"><i>📝 ${g.note}</i></div>` : ''}
+      </div>`);
     });
   }
 
