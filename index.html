@@ -449,11 +449,15 @@
   }
 
   function ensureDataStructure() {
-    appData.bookings = appData.bookings || []; appData.shopping = appData.shopping || []; 
-    appData.workers = appData.workers || []; appData.guests = appData.guests || [];
-    appData.settings = appData.settings || { theme: 'light', cardStyle: 'elevated' };
-  }
-
+  appData.bookings = appData.bookings || [];
+  appData.bookings.forEach(b => { b.payments = b.payments || []; });
+  appData.shopping = appData.shopping || []; 
+  appData.workers = appData.workers || [];
+  appData.workers.forEach(w => { w.payments = w.payments || []; w.attendance = w.attendance || {}; });
+  appData.guests = appData.guests || [];
+  appData.guests.forEach(g => { g.phones = g.phones || []; });
+  appData.settings = appData.settings || { theme: 'light', cardStyle: 'elevated' };
+}
   function saveData(pushToCloud = true) { 
     localStorage.setItem(`managerProData_${currentUser.uid}`, JSON.stringify(appData)); 
     if(pushToCloud && currentUser) { db.ref('users/' + currentUser.uid).set(appData).catch(e => console.log('Saved locally')); }
