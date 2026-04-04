@@ -820,15 +820,44 @@ function savePayment(e) {
     `;
   }
 
-  function renderBookings() {
+function renderBookings() {
     let tTotal = 0, tPaid = 0, tDue = 0; const q = document.getElementById('global-search').value.toLowerCase(); const list = document.getElementById('booking-list'); list.innerHTML = ''; let filtered = appData.bookings.filter(b => b.name.toLowerCase().includes(q));
     appData.bookings.forEach(b => { tTotal += b.total; let p = b.payments.reduce((s,x)=>s+x.amount,0); tPaid += p; tDue += (b.total - p); });
-    document.getElementById('booking-summary').innerHTML = `<div class="stat-box"><span>Fixed</span><strong>${formatMoney(tTotal)}</strong></div><div class="summary-divider"></div><div class="stat-box"><span>Paid</span><strong>${formatMoney(tPaid)}</strong></div><div class="summary-divider"></div><div class="stat-box"><span>Bakaya</span><strong>${formatMoney(tDue)}</strong></div>`;
+    
+    // Summary Bar me bhi colors fix kiye
+    document.getElementById('booking-summary').innerHTML = `<div class="stat-box"><span>Fixed</span><strong>${formatMoney(tTotal)}</strong></div><div class="summary-divider"></div><div class="stat-box"><span>Paid</span><strong style="color:var(--success);">${formatMoney(tPaid)}</strong></div><div class="summary-divider"></div><div class="stat-box"><span>Bakaya</span><strong style="color:var(--danger);">${formatMoney(tDue)}</strong></div>`;
+    
     filtered = sortList(filtered); if(!filtered.length) { list.innerHTML = '<p style="text-align:center; margin-top:20px;">No bookings found.</p>'; return; }
+    
     filtered.forEach(b => {
       let paid = b.payments.reduce((s,p) => s+p.amount, 0); let bal = b.total - paid;
       let phoneHtml = renderPhoneLinks(b.phone);
-      list.insertAdjacentHTML('beforeend', `<div class="card" style="${bal <= 0 ? 'border-left: 4px solid var(--success);' : ''}"><div class="card-header" style="flex-wrap:wrap;"><div><h3 style="margin-bottom:2px;">${b.name}</h3>${phoneHtml}</div><div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;">${getActionBtns('booking', b.id, !!b.note)}<span class="badge ${bal <= 0 ? 'success' : 'danger'}">${bal <= 0 ? 'Clear' : 'Pending'}</span></div></div><div class="data-row"><span>Total:</span> <strong>${formatMoney(b.total)}</strong></div><div class="data-row"><span>Paid:</span> <strong>${formatMoney(paid)}</strong></div><div class="data-row"><span>Bakaya:</span> <strong class="${bal > 0 ? 'danger' : ''}">${formatMoney(bal)}</strong></div>${b.note ? `<div class="note-box"><i>📝 ${b.note}</i></div>` : ''}<div class="history-list"><div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; padding-top:6px;" onclick="toggleHistory('hist-${b.id}')"><h4 style="font-size:0.75rem; color:var(--text);">History</h4><span id="icon-${b.id}" style="font-size:0.65rem; color:var(--text-muted); font-weight:bold;">▼ Show</span></div><div id="hist-${b.id}" style="display:none; margin-top:6px;">${b.payments.length ? b.payments.map(p => `<div class="history-item"><span>${p.date}</span> <strong>${formatMoney(p.amount)}</strong></div>`).join('') : '<span style="font-size:0.7rem;">No payments yet.</span>'}</div></div><div style="margin-top:10px;"><button class="btn btn-secondary btn-sm" style="width:100%;" onclick="openPaymentModal('booking', '${b.id}')">+ Add Payment</button></div></div>`);
+      
+      list.insertAdjacentHTML('beforeend', `<div class="card" style="${bal <= 0 ? 'border-left: 4px solid var(--success);' : ''}">
+        <div class="card-header" style="flex-wrap:wrap;">
+          <div><h3 style="margin-bottom:2px;">${b.name}</h3>${phoneHtml}</div>
+          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
+            ${getActionBtns('booking', b.id, !!b.note)}
+            <span class="badge ${bal <= 0 ? 'success' : 'danger'}">${bal <= 0 ? 'Clear' : 'Pending'}</span>
+          </div>
+        </div>
+        <div class="data-row"><span>Total:</span> <strong>${formatMoney(b.total)}</strong></div>
+        <div class="data-row"><span>Paid:</span> <strong style="color:var(--success);">${formatMoney(paid)}</strong></div>
+        <div class="data-row"><span>Bakaya:</span> <strong style="${bal > 0 ? 'color:var(--danger);' : 'color:var(--success);'}">${formatMoney(bal)}</strong></div>
+        ${b.note ? `<div class="note-box"><i>📝 ${b.note}</i></div>` : ''}
+        <div class="history-list">
+          <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; padding-top:6px;" onclick="toggleHistory('hist-${b.id}')">
+            <h4 style="font-size:0.75rem; color:var(--text);">History</h4>
+            <span id="icon-${b.id}" style="font-size:0.65rem; color:var(--text-muted); font-weight:bold;">▼ Show</span>
+          </div>
+          <div id="hist-${b.id}" style="display:none; margin-top:6px;">
+            ${b.payments.length ? b.payments.map(p => `<div class="history-item"><span>${p.date}</span> <strong>${formatMoney(p.amount)}</strong></div>`).join('') : '<span style="font-size:0.7rem;">No payments yet.</span>'}
+          </div>
+        </div>
+        <div style="margin-top:10px;">
+          <button class="btn btn-secondary btn-sm" style="width:100%;" onclick="openPaymentModal('booking', '${b.id}')">+ Add Payment</button>
+        </div>
+      </div>`);
     });
   }
 
