@@ -5,7 +5,7 @@
 <meta name="theme-color" content="#1e1e2e">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MP</title>
+<title>Enterprise</title>
 
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
@@ -182,7 +182,7 @@
   <main class="main-content">
     <section id="tab-home" class="section active">
       
-      <div style="position: absolute; top: 10px; width: 100%; text-align: center; z-index: -1; opacity: 0.08; pointer-events: none;">
+     <div style="position: absolute; bottom: -150px; width: 100%; text-align: center; z-index: -1; opacity: 0.08; pointer-events: none;">
         <div style="font-size: 3.5rem; font-weight: 900; letter-spacing: 4px; color: var(--accent);">BHAWNA</div>
         <div style="font-size: 2rem; font-weight: 800; color: var(--text-muted); margin-top: -12px;">MP</div>
       </div>
@@ -200,13 +200,13 @@
     </section>
     
     <section id="tab-booking" class="section">
-      <div style="display:flex; justify-content:flex-end; margin-bottom:8px;"><button class="icon-btn" onclick="toggleSort('time')" title="Sort"><svg viewBox="0 0 24 24"><path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z"/></svg></button></div>
+      <div style="display:flex; justify-content:flex-end; margin-bottom:8px;"><button class="icon-btn" onclick="toggleSort()" title="Sort"><svg viewBox="0 0 24 24"><path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z"/></svg></button></div>
       <div id="booking-summary" class="summary-bar"></div>
       <div id="booking-list"></div>
     </section>
     
     <section id="tab-shopping" class="section">
-      <div style="display:flex; justify-content:flex-end; margin-bottom:8px;"><button class="icon-btn" onclick="toggleSort('time')" title="Sort"><svg viewBox="0 0 24 24"><path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z"/></svg></button></div>
+      <div style="display:flex; justify-content:flex-end; margin-bottom:8px;"><button class="icon-btn" onclick="toggleSort()" title="Sort"><svg viewBox="0 0 24 24"><path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z"/></svg></button></div>
       <div id="shopping-summary" class="summary-bar"></div>
       <div id="shopping-list"></div>
     </section>
@@ -219,7 +219,7 @@
         <select id="filter-k-passi" onchange="renderKhana()" style="margin:0; font-size:0.75rem; padding:6px; border-radius:6px; flex:1;">
           <option value="all">Passi (All)</option><option value="pending">Pending</option><option value="done">Done</option>
         </select>
-        <button class="icon-btn" onclick="toggleSort('time')" title="Sort"><svg viewBox="0 0 24 24"><path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z"/></svg></button>
+        <button class="icon-btn" onclick="toggleSort()" title="Sort"><svg viewBox="0 0 24 24"><path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z"/></svg></button>
       </div>
       <div id="khana-summary" class="summary-bar"></div>
       <div id="khana-list"></div>
@@ -378,20 +378,17 @@
     <div class="modal-header"><h2>App Settings</h2><button class="icon-btn" type="button" onclick="closeModal()"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button></div>
     <label class="form-label" style="font-size:0.75rem; font-weight:600;">Theme</label>
     <select id="set-theme" onchange="updateSettings()"><option value="light">Light</option><option value="dark">Dark</option><option value="amoled">AMOLED</option></select>
-    <label class="form-label" style="font-size:0.75rem; font-weight:600;">Card Style</label>
-    <select id="set-card" onchange="updateSettings()"><option value="elevated">Elevated</option><option value="flat">Flat</option></select>
     <hr style="border:none; border-top:1px solid var(--border); margin: 12px 0;">
     
     <button class="btn btn-secondary" style="width:100%; margin-bottom:8px; color:var(--danger);" onclick="logout()">Logout / Change Account</button>
+    <button class="btn btn-primary" style="width:100%; margin-bottom:8px;" onclick="printData()">🖨️ Print Data (PDF View)</button>
     
     <button class="btn btn-secondary" style="width:100%; margin-bottom:8px;" onclick="exportData()">Export Data (Backup)</button>
     <label class="btn btn-secondary" style="width:100%; margin-bottom:8px; display:inline-flex; align-items:center; justify-content:center; padding:8px 14px; border-radius:6px; cursor:pointer; gap:4px; font-size:0.8rem; font-weight:600;">
       Import Data <input type="file" style="display:none;" accept=".json" onchange="importData(event)">
     </label>
-    <button class="btn btn-danger" style="width:100%;" onclick="resetApp()">Reset Application</button>
   </div>
 </div>
-
 <script>
   const firebaseConfig = {
       apiKey: "AIzaSyCpsdpNnxjLktRzQopOCtVpLmBOLJgZ0Lc",
@@ -763,10 +760,17 @@
   }
 
   function openPaymentModal(type, id) { document.getElementById('p-type').value = type; document.getElementById('p-id').value = id; document.getElementById('p-amount').value = ''; document.getElementById('p-date').value = new Date().toISOString().split('T')[0]; openModal('modal-add-payment'); }
-  function savePayment(e) {
+function savePayment(e) {
     e.preventDefault(); const type = document.getElementById('p-type').value; const id = document.getElementById('p-id').value; const amount = parseFloat(document.getElementById('p-amount').value); const date = document.getElementById('p-date').value;
     let list = type === 'booking' ? appData.bookings : []; let item = list.find(x => x.id === id);
-    if(item) { item.payments.push({ id: generateId(), date, amount, note: 'Installment' }); saveData(); closeModal(); }
+    if(item) { 
+      let paidTotal = item.payments.reduce((s, p) => s + p.amount, 0);
+      if (paidTotal + amount > item.total) {
+        alert("Bakaya rashi se jyada payment nahi kiya ja sakta!");
+        return;
+      }
+      item.payments.push({ id: generateId(), date, amount, note: 'Installment' }); saveData(); closeModal(); 
+    }
   }
 
   function openNoteModal(type, id) {
@@ -809,10 +813,10 @@
     let gAttending = 0, gPendingCards = 0; appData.guests.forEach(g => { if(g.attending) gAttending++; if(!g.cardSent) gPendingCards++; });
 
     document.getElementById('home-summary-container').innerHTML = `
-      <div class="card"><div class="card-header"><h3>📅 Booking & Services</h3></div><div class="data-row"><span>Bookings:</span> <strong>${appData.bookings.length}</strong></div><div class="data-row"><span>Received:</span> <strong class="success">${formatMoney(bPaid)}</strong></div><div class="data-row"><span>Bakaya:</span> <strong class="danger">${formatMoney(bDue)}</strong></div></div>
-      <div class="card"><div class="card-header"><h3>👨‍👩‍👧‍👦 Mehman (Guests)</h3></div><div class="data-row"><span>Total Guests:</span> <strong>${appData.guests.length}</strong></div><div class="data-row"><span>Aa Gye:</span> <strong class="success">${gAttending}</strong></div><div class="data-row"><span>Cards Pending:</span> <strong class="danger">${gPendingCards}</strong></div></div>
-      <div class="card"><div class="card-header"><h3>🛒 Shopping Lists</h3></div><div class="data-row"><span>Pending Items:</span> <strong>${sPendItems}</strong></div><div class="data-row"><span>Pending Cost:</span> <strong class="danger">${formatMoney(sPendCost)}</strong></div></div>
-      <div class="card"><div class="card-header"><h3>🍽️ Khana Details</h3></div><div class="data-row"><span>Total Entry:</span> <strong>${kTotal}</strong></div><div class="data-row"><span>Khana Done:</span> <strong class="success">${kDone}</strong></div><div class="data-row"><span>Pending:</span> <strong class="danger">${kTotal - kDone}</strong></div></div>
+      <div class="card" onclick="switchTab('tab-booking')" style="cursor:pointer;"><div class="card-header"><h3>📅 Booking & Services</h3></div><div class="data-row"><span>Bookings:</span> <strong>${appData.bookings.length}</strong></div><div class="data-row"><span>Received:</span> <strong class="success">${formatMoney(bPaid)}</strong></div><div class="data-row"><span>Bakaya:</span> <strong class="danger">${formatMoney(bDue)}</strong></div></div>
+      <div class="card" onclick="switchTab('tab-guest')" style="cursor:pointer;"><div class="card-header"><h3>👨‍👩‍👧‍👦 Mehman (Guests)</h3></div><div class="data-row"><span>Total Guests:</span> <strong>${appData.guests.length}</strong></div><div class="data-row"><span>Aa Gye:</span> <strong class="success">${gAttending}</strong></div><div class="data-row"><span>Cards Pending:</span> <strong class="danger">${gPendingCards}</strong></div></div>
+      <div class="card" onclick="switchTab('tab-shopping')" style="cursor:pointer;"><div class="card-header"><h3>🛒 Shopping Lists</h3></div><div class="data-row"><span>Pending Items:</span> <strong>${sPendItems}</strong></div><div class="data-row"><span>Pending Cost:</span> <strong class="danger">${formatMoney(sPendCost)}</strong></div></div>
+      <div class="card" onclick="switchTab('tab-khana')" style="cursor:pointer;"><div class="card-header"><h3>🍽️ Khana Details</h3></div><div class="data-row"><span>Total Entry:</span> <strong>${kTotal}</strong></div><div class="data-row"><span>Khana Done:</span> <strong class="success">${kDone}</strong></div><div class="data-row"><span>Pending:</span> <strong class="danger">${kTotal - kDone}</strong></div></div>
     `;
   }
 
@@ -824,7 +828,7 @@
     filtered.forEach(b => {
       let paid = b.payments.reduce((s,p) => s+p.amount, 0); let bal = b.total - paid;
       let phoneHtml = renderPhoneLinks(b.phone);
-      list.insertAdjacentHTML('beforeend', `<div class="card"><div class="card-header" style="flex-wrap:wrap;"><div><h3 style="margin-bottom:2px;">${b.name}</h3>${phoneHtml}</div><div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;">${getActionBtns('booking', b.id, !!b.note)}<span class="badge ${bal <= 0 ? 'success' : 'danger'}">${bal <= 0 ? 'Clear' : 'Pending'}</span></div></div><div class="data-row"><span>Total:</span> <strong>${formatMoney(b.total)}</strong></div><div class="data-row"><span>Paid:</span> <strong>${formatMoney(paid)}</strong></div><div class="data-row"><span>Bakaya:</span> <strong class="${bal > 0 ? 'danger' : ''}">${formatMoney(bal)}</strong></div>${b.note ? `<div class="note-box"><i>📝 ${b.note}</i></div>` : ''}<div class="history-list"><div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; padding-top:6px;" onclick="toggleHistory('hist-${b.id}')"><h4 style="font-size:0.75rem; color:var(--text);">History</h4><span id="icon-${b.id}" style="font-size:0.65rem; color:var(--text-muted); font-weight:bold;">▼ Show</span></div><div id="hist-${b.id}" style="display:none; margin-top:6px;">${b.payments.length ? b.payments.map(p => `<div class="history-item"><span>${p.date}</span> <strong>${formatMoney(p.amount)}</strong></div>`).join('') : '<span style="font-size:0.7rem;">No payments yet.</span>'}</div></div><div style="margin-top:10px;"><button class="btn btn-secondary btn-sm" style="width:100%;" onclick="openPaymentModal('booking', '${b.id}')">+ Add Payment</button></div></div>`);
+      list.insertAdjacentHTML('beforeend', `<div class="card" style="${bal <= 0 ? 'border-left: 4px solid var(--success);' : ''}"><div class="card-header" style="flex-wrap:wrap;"><div><h3 style="margin-bottom:2px;">${b.name}</h3>${phoneHtml}</div><div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;">${getActionBtns('booking', b.id, !!b.note)}<span class="badge ${bal <= 0 ? 'success' : 'danger'}">${bal <= 0 ? 'Clear' : 'Pending'}</span></div></div><div class="data-row"><span>Total:</span> <strong>${formatMoney(b.total)}</strong></div><div class="data-row"><span>Paid:</span> <strong>${formatMoney(paid)}</strong></div><div class="data-row"><span>Bakaya:</span> <strong class="${bal > 0 ? 'danger' : ''}">${formatMoney(bal)}</strong></div>${b.note ? `<div class="note-box"><i>📝 ${b.note}</i></div>` : ''}<div class="history-list"><div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; padding-top:6px;" onclick="toggleHistory('hist-${b.id}')"><h4 style="font-size:0.75rem; color:var(--text);">History</h4><span id="icon-${b.id}" style="font-size:0.65rem; color:var(--text-muted); font-weight:bold;">▼ Show</span></div><div id="hist-${b.id}" style="display:none; margin-top:6px;">${b.payments.length ? b.payments.map(p => `<div class="history-item"><span>${p.date}</span> <strong>${formatMoney(p.amount)}</strong></div>`).join('') : '<span style="font-size:0.7rem;">No payments yet.</span>'}</div></div><div style="margin-top:10px;"><button class="btn btn-secondary btn-sm" style="width:100%;" onclick="openPaymentModal('booking', '${b.id}')">+ Add Payment</button></div></div>`);
     });
   }
 
@@ -842,9 +846,9 @@
     const fPassi = document.getElementById('filter-k-passi').value;
     const list = document.getElementById('khana-list'); list.innerHTML = '';
     
-    let tAll = appData.khana.length, tDone = 0;
-    appData.khana.forEach(k => { if(k.isCompleted) tDone++; });
-    document.getElementById('khana-summary').innerHTML = `<div class="stat-box"><span>Total Entry</span><strong>${tAll}</strong></div><div class="summary-divider"></div><div class="stat-box"><span>Khana Done</span><strong class="success">${tDone}</strong></div>`;
+   let tAll = appData.khana.length, tDone = 0, tPassi = 0;
+    appData.khana.forEach(k => { if(k.isCompleted) tDone++; if(k.isPassi) tPassi++; });
+    document.getElementById('khana-summary').innerHTML = `<div class="stat-box"><span>Total Entry</span><strong>${tAll}</strong></div><div class="summary-divider"></div><div class="stat-box"><span>Khana Done</span><strong class="success">${tDone}</strong></div><div class="summary-divider"></div><div class="stat-box"><span>Passi Done</span><strong class="success">${tPassi}</strong></div>`;
     
     let filtered = appData.khana.filter(k => {
       let matchSearch = k.name.toLowerCase().includes(q);
@@ -963,12 +967,95 @@
     });
   }
 
-  function applySettings() { document.documentElement.setAttribute('data-theme', appData.settings.theme); document.documentElement.setAttribute('data-card-style', appData.settings.cardStyle); document.getElementById('set-theme').value = appData.settings.theme; document.getElementById('set-card').value = appData.settings.cardStyle; }
-  function updateSettings() { appData.settings.theme = document.getElementById('set-theme').value; appData.settings.cardStyle = document.getElementById('set-card').value; saveData(); applySettings(); }
+ function applySettings() { document.documentElement.setAttribute('data-theme', appData.settings.theme); document.getElementById('set-theme').value = appData.settings.theme; }
+  function updateSettings() { appData.settings.theme = document.getElementById('set-theme').value; saveData(); applySettings(); }
   function exportData() { const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData)); const a = document.createElement('a'); a.setAttribute("href", dataStr); a.setAttribute("download", `ManagerPro_Backup.json`); document.body.appendChild(a); a.click(); a.remove(); }
   function importData(event) { const file = event.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = function(e) { try { const imp = JSON.parse(e.target.result); if(imp.bookings) { appData = imp; ensureDataStructure(); saveData(); alert("Data Imported Successfully!"); closeModal(); } } catch(err) { alert("Invalid JSON File"); } }; reader.readAsText(file); event.target.value = ''; }
   function resetApp() { if(confirm("DANGER: Are you sure you want to delete all data?")) { appData = { bookings: [], shopping: [], khana: [], guests: [], settings: appData.settings }; saveData(); closeModal(); } }
+  
+  
+		function printData() {
+    let html = `<html><head><title>Manager Pro - Complete Report</title>
+      <style>
+        body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
+        h1 { text-align: center; color: #1f2937; margin-bottom: 30px; border-bottom: 2px solid #ccc; padding-bottom: 10px; }
+        h2 { background: #f4f6f9; padding: 10px; border-left: 5px solid #3b82f6; margin-top: 30px; font-size: 16px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 13px; }
+        th, td { border: 1px solid #ddd; padding: 8px 10px; text-align: left; vertical-align: top; }
+        th { background-color: #3b82f6; color: white; }
+        .red { color: #dc2626; font-weight: bold; }
+        .green { color: #16a34a; font-weight: bold; }
+        .note-text { font-size: 11px; color: #666; font-style: italic; }
+        .small-text { font-size: 11px; color: #555; }
+      </style></head><body>
+      <h1>Manager Pro - Complete Data Report</h1>
+      
+      <h2>📅 Booking & Services Data</h2>
+      <table><tr><th>Service/Name</th><th>Phone</th><th>Total Amt</th><th>Paid</th><th>Bakaya</th><th>Notes</th></tr>
+      ${appData.bookings.map(b => {
+         let p = b.payments.reduce((s,x)=>s+x.amount,0); let due = b.total - p;
+         return `<tr>
+           <td><strong>${b.name}</strong></td>
+           <td>${b.phone || '-'}</td>
+           <td>₹${b.total}</td>
+           <td class="green">₹${p}</td>
+           <td class="${due>0?'red':'green'}">₹${due}</td>
+           <td class="note-text">${b.note ? '📝 ' + b.note : '-'}</td>
+         </tr>`;
+      }).join('')}
+      </table>
 
+      <h2>🛒 Shopping List Data</h2>
+      <table><tr><th>Item Name</th><th>Estimated Cost</th><th>Status</th><th>Notes</th></tr>
+      ${appData.shopping.map(s => {
+         return `<tr>
+           <td><strong>${s.name}</strong></td>
+           <td>₹${s.cost}</td>
+           <td class="${s.purchased?'green':'red'}">${s.purchased?'Bought ✅':'Pending'}</td>
+           <td class="note-text">${s.note ? '📝 ' + s.note : '-'}</td>
+         </tr>`;
+      }).join('')}
+      </table>
+
+      <h2>🍽️ Khana & Passi Data</h2>
+      <table><tr><th>Name</th><th>Date & Time</th><th>Khana Details</th><th>Passi Details</th><th>Notes</th></tr>
+      ${appData.khana.map(k => {
+         let khanaStr = k.isCompleted ? `<span class="green">Done ✅</span><br><div class="small-text">Khana: ${k.foodName || '-'}<br>Gya: ${k.personName || '-'}</div>` : '<span class="red">Pending</span>';
+         let passiStr = k.isPassi ? `<span class="green">Done ✅</span><br><div class="small-text">Diya: ${k.passiDetail || '-'}<br>Rashi: ₹${k.passiAmount || '0'}</div>` : '<span class="red">Pending</span>';
+         return `<tr>
+           <td><strong>${k.name}</strong></td>
+           <td>${k.date}<br><span class="small-text">${k.time || ''}</span></td>
+           <td>${khanaStr}</td>
+           <td>${passiStr}</td>
+           <td class="note-text">${k.note ? '📝 ' + k.note : '-'}</td>
+         </tr>`;
+      }).join('')}
+      </table>
+
+      <h2>👨‍👩‍👧‍👦 Mehman (Guests) Data</h2>
+      <table><tr><th>Name</th><th>Location & Contact</th><th>Aa Gye?</th><th>Card Bheja?</th><th>Gift?</th><th>Notes</th></tr>
+      ${appData.guests.map(g => {
+         let phonesStr = (g.phones && g.phones.length > 0) ? g.phones.join(', ') : (g.phone || '-');
+         let cardStr = g.cardSent ? `<span class="green">Yes ✅</span><br><span class="small-text">(${g.cardMode || 'Not Specified'})</span>` : '<span class="red">No</span>';
+         return `<tr>
+           <td><strong>${g.name}</strong></td>
+           <td>${g.city || 'City N/A'}<br><span class="small-text">📞 ${phonesStr}</span></td>
+           <td class="${g.attending?'green':''}">${g.attending?'Yes ✅':'No'}</td>
+           <td>${cardStr}</td>
+           <td>${g.gift?'Yes':'No'}</td>
+           <td class="note-text">${g.note ? '📝 ' + g.note : '-'}</td>
+         </tr>`;
+      }).join('')}
+      </table>
+
+      <div style="text-align:center; margin-top: 40px; font-size: 12px; color: #777;">Generated via Wedding Manager Pro | Date: ${new Date().toLocaleDateString('en-IN')}</div>
+      <script>window.onload = function() { window.print(); }<\/script>
+      </body></html>`;
+
+    let printWin = window.open('', '_blank');
+    printWin.document.write(html);
+    printWin.document.close();
+  }
 </script>
   <script>
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js');
