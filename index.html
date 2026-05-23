@@ -999,7 +999,48 @@ function renderBookings() {
  function applySettings() { document.documentElement.setAttribute('data-theme', appData.settings.theme); document.getElementById('set-theme').value = appData.settings.theme; }
   function updateSettings() { appData.settings.theme = document.getElementById('set-theme').value; saveData(); applySettings(); }
   function exportData() { const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData)); const a = document.createElement('a'); a.setAttribute("href", dataStr); a.setAttribute("download", `ManagerPro_Backup.json`); document.body.appendChild(a); a.click(); a.remove(); }
-  function importData(event) { const file = event.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = function(e) { try { const imp = JSON.parse(e.target.result); if(imp.bookings) { appData = imp; ensureDataStructure(); saveData(); alert("Data Imported Successfully!"); closeModal(); } } catch(err) { alert("Invalid JSON File"); } }; reader.readAsText(file); event.target.value = ''; }
+ function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    try {
+      let imp = JSON.parse(e.target.result);
+      
+      // Check if it's a raw Firebase Export (has 'users' key)
+      if (imp.users) {
+        if (currentUser && imp.users[currentUser.uid]) {
+          // Extraxct only the current user's data from Firebase export
+          imp = imp.users[currentUser.uid];
+        } else {
+           // Agar user match nahi karta ya uid miss ho
+           let firstUserKey = Object.keys(imp.users)[0];
+           if(firstUserKey) {
+             imp = imp.users[firstUserKey];
+           } else {
+             alert("No user data found in this Firebase export!");
+             return;
+           }
+        }
+      }
+
+      // Final validation to ensure core arrays exist
+      if (imp.bookings || imp.guests || imp.shopping || imp.khana) {
+        appData = imp;
+        ensureDataStructure(); // Yahi par naya wala cleanArray wala function call hoga
+        saveData();
+        alert("Data Imported Successfully!");
+        closeModal();
+      } else {
+        alert("Data format not recognized. Make sure it's a Manager Pro backup.");
+      }
+    } catch (err) {
+      alert("Invalid JSON File: " + err.message);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
   function resetApp() { if(confirm("DANGER: Are you sure you want to delete all data?")) { appData = { bookings: [], shopping: [], khana: [], guests: [], settings: appData.settings }; saveData(); closeModal(); } }
   
   
